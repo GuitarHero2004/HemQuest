@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 1. Outer Golden Sun Medallion (Center 54, 54 - Radius 31dp) -->
+    <path
+        android:fillColor="#FFB703"
+        android:pathData="M54,23 A31,31 0 1,0 54,85 A31,31 0 1,0 54,23 Z" />
+
+    <!-- 1b. Inner Warm Sunburst Ring -->
+    <path
+        android:fillColor="#FB8500"
+        android:pathData="M54,25 A29,29 0 1,0 54,83 A29,29 0 1,0 54,25 Z" />
+
+    <!-- 2. Pure White Exploration Disc Core -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,27 A27,27 0 1,0 54,81 A27,27 0 1,0 54,27 Z" />
+
+    <!-- 3. Vietnamese Alley Archway / Heritage Eaves (Cổng Hẻm Sài Gòn) -->
+    <!-- Traditional Curved Terracotta Roof Crest -->
+    <path
+        android:fillColor="#D64527"
+        android:pathData="M34,44 C40,41 47,38 54,38 C61,38 68,41 74,44 C72,42 66,36 54,36 C42,36 36,42 34,44 Z" />
+
+    <path
+        android:fillColor="#E76F51"
+        android:pathData="M37,45 L71,45 L69,48 L39,48 Z" />
+
+    <!-- Gateway Pillars / Archway Frame -->
+    <path
+        android:fillColor="#F4A261"
+        android:pathData="M38,48 L42,48 L42,75 L38,75 Z M66,48 L70,48 L70,75 L66,75 Z" />
+
+    <!-- Archway Inner Portal Curve (Hẻm Alleyway Depth) -->
+    <path
+        android:fillColor="#E9F5ED"
+        android:pathData="M42,48 C42,48 46,46 54,46 C62,46 66,48 66,48 L66,75 L42,75 Z" />
+
+    <!-- 4. Iconic Vietnamese Conical Hat (Nón Lá) Silhouette -->
+    <path
+        android:fillColor="#FFD166"
+        android:pathData="M54,44 L70,61 C65,63 43,63 38,61 Z" />
+
+    <!-- Nón Lá Bamboo Ridge Highlights -->
+    <path
+        android:strokeColor="#F4A261"
+        android:strokeWidth="0.8"
+        android:pathData="M54,44 L54,62 M48,51 C50,51.5 58,51.5 60,51 M43,56 C47,57 61,57 65,56" />
+
+    <!-- 5. Vibrant Saigon Exploration Star & Eco Leaf Emblem -->
+    <!-- Eco Green Leaf (Left Accent) -->
+    <path
+        android:fillColor="#00A86B"
+        android:pathData="M48,65 C43,64 42,59 45,56 C49,58 51,62 48,65 Z" />
+
+    <!-- Central Glowing Vietnam Golden Star / Compass Pointer -->
+    <path
+        android:fillColor="#DA251D"
+        android:pathData="M54,58 A9,9 0 1,0 54,76 A9,9 0 1,0 54,58 Z" />
+
+    <path
+        android:fillColor="#FFD166"
+        android:pathData="M54,60.5 L56,65 L61,65.5 L57,69 L58.5,74 L54,71 L49.5,74 L51,69 L47,65.5 L52,65 Z" />
+
+    <!-- Clean Rim Highlight -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.2"
+        android:pathData="M54,28 A26,26 0 0,0 30,54" />
+</vector>
+

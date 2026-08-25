@@ -1,0 +1,6 @@
+{
+  "name": "HẻmQuest",
+  "description": "Personalised low-impact cultural walking quests in Vietnam",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
