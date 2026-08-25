@@ -35,7 +35,6 @@ fun AlleyScrapbookSection(
     currentLanguage: String
 ) {
     val completedQuests = quests.filter { q -> q.stops.any { it.status == StopStatus.COMPLETED } }
-    if (completedQuests.isEmpty()) return
 
     Column(
         modifier = Modifier
@@ -55,59 +54,125 @@ fun AlleyScrapbookSection(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = l(currentLanguage, "Sổ Tay Ký Ức Hẻm", "Alley Scrapbook", "巷弄记忆集", "路地の思い出帳", "골목 스크랩북"),
+                text = l(currentLanguage, "Sổ Tay Ký Ức Hẻm", "Alley Scrapbook", "巷弄记忆集", "路지의 思い出帳", "골목 스크랩북"),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Ink900
             )
         }
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(end = 16.dp)
-        ) {
-            items(completedQuests) { quest ->
-                val completedStops = quest.stops.filter { it.status == StopStatus.COMPLETED }
-                completedStops.forEach { stop ->
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = PaperWhite),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        if (completedQuests.isEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = PaperWhite),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(
                         modifier = Modifier
-                            .width(220.dp)
-                            .height(180.dp)
+                            .size(54.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(ForestGreen.copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Column {
-                            AsyncImage(
-                                model = stop.photoUri ?: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=400&auto=format&fit=crop",
-                                contentDescription = stop.name,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(110.dp)
-                                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                            )
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp)
-                            ) {
-                                Text(
-                                    text = stop.name,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Ink900,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                        Icon(
+                            imageVector = Icons.Default.PhotoAlbum,
+                            contentDescription = null,
+                            tint = ForestGreen,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = l(
+                                currentLanguage,
+                                "Chưa có ký ức hẻm nào",
+                                "No Alley Memories Yet",
+                                "暂无巷弄记忆",
+                                "まだ思い出はありません",
+                                "아직 골목 추억이 없습니다"
+                            ),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Ink900
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = l(
+                                currentLanguage,
+                                "Hãy hoàn thành trạm dừng và xác thực ảnh đầu tiên để ghi chép lại hành trình!",
+                                "Complete your first checkpoint and verify a photo to start your journey scrapbook!",
+                                "完成首个打卡点 verification 并拍照, 开启你的记忆集!",
+                                "最初のチェックポイントを完了して写真を記録しましょう！",
+                                "첫 번째 체크포인트를 완료하고 사진을 기록하세요!"
+                            ),
+                            fontSize = 12.sp,
+                            color = Ink600,
+                            lineHeight = 16.sp
+                        )
+                    }
+                }
+            }
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(end = 16.dp)
+            ) {
+                items(completedQuests) { quest ->
+                    val completedStops = quest.stops.filter { it.status == StopStatus.COMPLETED }
+                    completedStops.forEach { stop ->
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = PaperWhite),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                            modifier = Modifier
+                                .width(220.dp)
+                                .height(180.dp)
+                        ) {
+                            Column {
+                                AsyncImage(
+                                    model = stop.photoUri ?: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=400&auto=format&fit=crop",
+                                    contentDescription = stop.name,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(110.dp)
+                                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stop.category,
-                                    fontSize = 11.sp,
-                                    color = Ink600,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp)
+                                ) {
+                                    Text(
+                                        text = stop.name,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Ink900,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = stop.category,
+                                        fontSize = 11.sp,
+                                        color = Ink600,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
                     }
