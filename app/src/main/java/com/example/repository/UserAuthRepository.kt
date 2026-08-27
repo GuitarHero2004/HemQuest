@@ -49,23 +49,6 @@ class UserAuthRepository(
         const val CURRENT_STATS_DOC = "current"
     }
 
-    init {
-        // Start listening to auth state changes immediately to initialize user document on sign-in
-        startAuthLifecycleObserver()
-    }
-
-    /**
-     * Resolves the Firestore document ID for a given user.
-     * Uses email if available, otherwise falls back to UID.
-     */
-    fun resolveUserDocId(user: FirebaseUser? = auth?.currentUser): String {
-        val email = user?.email?.ifBlank { null }
-            ?: prefs.getString("local_user_email", null)?.ifBlank { null }
-            ?: user?.uid?.ifBlank { null }
-            ?: "anhminhnts2004@gmail.com"
-        return email.trim().lowercase()
-    }
-
     /**
      * Cold Flow emitting FirebaseUser updates when authentication state changes.
      */
@@ -92,6 +75,23 @@ class UserAuthRepository(
             trySend(null)
             awaitClose { }
         }
+    }
+
+    init {
+        // Start listening to auth state changes immediately to initialize user document on sign-in
+        startAuthLifecycleObserver()
+    }
+
+    /**
+     * Resolves the Firestore document ID for a given user.
+     * Uses email if available, otherwise falls back to UID.
+     */
+    fun resolveUserDocId(user: FirebaseUser? = auth?.currentUser): String {
+        val email = user?.email?.ifBlank { null }
+            ?: prefs.getString("local_user_email", null)?.ifBlank { null }
+            ?: user?.uid?.ifBlank { null }
+            ?: "anhminhnts2004@gmail.com"
+        return email.trim().lowercase()
     }
 
     /**
