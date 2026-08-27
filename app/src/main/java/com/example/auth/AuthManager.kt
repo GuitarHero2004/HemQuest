@@ -79,11 +79,8 @@ class AuthManager(
         val userEmail = email?.ifBlank { null }
             ?: currentUser?.email?.ifBlank { null }
             ?: prefs.getString("local_user_email", null)?.ifBlank { null }
-        return if (!userEmail.isNullOrBlank()) {
-            userEmail.trim().lowercase()
-        } else {
-            uid
-        }
+            ?: "anhminhnts2004@gmail.com"
+        return userEmail.trim().lowercase()
     }
 
     val currentUser: FirebaseUser?
@@ -444,6 +441,17 @@ class AuthManager(
         val fs = firestore ?: return
         val docId = getUserDocId(uid)
         try {
+            // 0. Ensure root user document exists in Firestore so collection displays in console
+            val userEmail = currentUser?.email ?: prefs.getString("local_user_email", null) ?: docId
+            val rootUserMap = hashMapOf<String, Any>(
+                "userEmail" to userEmail,
+                "uid" to uid,
+                "lastSyncedAt" to System.currentTimeMillis()
+            )
+            fs.collection("users").document(docId)
+                .set(rootUserMap, SetOptions.merge())
+                .await()
+
             // 1. Sync User Stats
             userStatsDao?.let { dao ->
                 val stats = dao.getUserStatsSync() ?: dao.getUserStats().firstOrNull()
@@ -474,7 +482,8 @@ class AuthManager(
                         val questMap = hashMapOf<String, Any>(
                             "id" to quest.id,
                             "questJson" to quest.questJson,
-                            "timestamp" to quest.timestamp
+                            "timestamp" to quest.timestamp,
+                            "status" to "COMPLETED"
                         )
                         fs.collection("users").document(docId)
                             .collection("quests").document(quest.id)
@@ -553,6 +562,14 @@ class AuthManager(
         val fs = firestore ?: return
         val docId = getUserDocId(uid)
         try {
+            val userEmail = currentUser?.email ?: prefs.getString("local_user_email", null) ?: docId
+            val rootUserMap = hashMapOf<String, Any>(
+                "userEmail" to userEmail,
+                "uid" to uid,
+                "lastActive" to System.currentTimeMillis()
+            )
+            fs.collection("users").document(docId).set(rootUserMap, SetOptions.merge()).await()
+
             val badgeMap = hashMapOf<String, Any>(
                 "id" to badge.id,
                 "title" to badge.title,
@@ -582,11 +599,30 @@ class AuthManager(
         val fs = firestore ?: return
         val docId = getUserDocId(uid)
         try {
-            val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
-            val adapter = moshi.adapter(com.example.model.Quest::class.java)
-            val questJson = adapter.toJson(quest)
+            val userEmail = currentUser?.email ?: prefs.getString("local_user_email", null) ?: docId
+            val rootUserMap = hashMapOf<String, Any>(
+                "userEmail" to userEmail,
+                "uid" to uid,
+                "lastActive" to System.currentTimeMillis()
+            )
+            fs.collection("users").document(docId).set(rootUserMap, SetOptions.merge()).await()
+
+            val questJson = try {
+                val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
+                moshi.adapter(com.example.model.Quest::class.java).toJson(quest)
+            } catch (e: Exception) {
+                Log.w("AuthManager", "Moshi serialization warning for quest ${quest.id}", e)
+                ""
+            }
             val questMap = hashMapOf<String, Any>(
                 "id" to quest.id,
+                "title" to quest.title,
+                "theme" to quest.theme,
+                "summary" to quest.summary,
+                "estimatedMinutes" to quest.estimatedMinutes,
+                "estimatedDistanceMetres" to quest.estimatedDistanceMetres,
+                "stopsCount" to quest.stops.size,
+                "status" to "COMPLETED",
                 "questJson" to questJson,
                 "timestamp" to System.currentTimeMillis()
             )
@@ -608,6 +644,13 @@ class AuthManager(
         val userEmail = currentUser?.email ?: photo.userEmail
         val docId = getUserDocId(uid, userEmail)
         try {
+            val rootUserMap = hashMapOf<String, Any>(
+                "userEmail" to (userEmail.ifBlank { docId }),
+                "uid" to uid,
+                "lastActive" to System.currentTimeMillis()
+            )
+            fs.collection("users").document(docId).set(rootUserMap, SetOptions.merge()).await()
+
             val photoMap = hashMapOf<String, Any>(
                 "id" to photo.id,
                 "stopId" to photo.stopId,
@@ -617,7 +660,9 @@ class AuthManager(
                 "photoBase64" to photo.photoBase64,
                 "timestamp" to photo.timestamp,
                 "userEmail" to userEmail,
-                "uid" to uid
+                "uid" to uid,
+                "isVerified" to photo.isVerified,
+                "verificationType" to photo.verificationType
             )
             fs.collection("users").document(docId)
                 .collection("photos").document(photo.id)
@@ -626,6 +671,34 @@ class AuthManager(
             Log.d("AuthManager", "Saved passport photo ${photo.id} under users/$docId/photos in Firestore")
         } catch (e: Exception) {
             Log.w("AuthManager", "Failed to save passport photo to Firestore", e)
+        }
+    }
+
+    /**
+     * Complete Factory Data Reset on Firestore: clear stats, quests, badges, photos subcollections and user doc
+     */
+    suspend fun resetUserFirestoreData(uid: String) {
+        val fs = firestore ?: return
+        val userEmail = currentUser?.email
+        val docIdsToClean = mutableSetOf(getUserDocId(uid, userEmail))
+        if (uid.isNotBlank() && uid != "local_user") {
+            docIdsToClean.add(uid)
+        }
+
+        for (docId in docIdsToClean) {
+            try {
+                val subcollections = listOf("quests", "badges", "photos", "stats")
+                for (sub in subcollections) {
+                    val snapshot = fs.collection("users").document(docId).collection(sub).get().await()
+                    for (doc in snapshot.documents) {
+                        doc.reference.delete().await()
+                    }
+                }
+                fs.collection("users").document(docId).delete().await()
+                Log.d("AuthManager", "Factory reset completed on Firestore for $docId")
+            } catch (e: Exception) {
+                Log.w("AuthManager", "Failed to reset Firestore user data for $docId", e)
+            }
         }
     }
 
@@ -647,6 +720,21 @@ class AuthManager(
                 null
             }
             val cloudBadgeIds = badgesSnapshot?.documents?.mapNotNull { it.getString("id") } ?: emptyList()
+
+            // Fetch quests subcollection
+            try {
+                val questsSnapshot = fs.collection("users").document(docId).collection("quests").get().await()
+                questsSnapshot?.documents?.forEach { doc ->
+                    val qId = doc.getString("id") ?: doc.id
+                    val qJson = doc.getString("questJson") ?: ""
+                    val qTimestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
+                    if (qJson.isNotEmpty() && questDao != null) {
+                        questDao.insertQuest(com.example.data.QuestEntity(id = qId, questJson = qJson, timestamp = qTimestamp))
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("AuthManager", "Failed to fetch quests from Firestore", e)
+            }
 
             // Fetch photos subcollection
             try {

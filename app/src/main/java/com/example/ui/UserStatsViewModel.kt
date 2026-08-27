@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 data class LiveLocationState(
@@ -81,24 +82,52 @@ class UserStatsViewModel(
             if (userStatsDao.getUserStatsSync() == null) {
                 userStatsDao.insertOrUpdate(UserStatsEntity())
             }
+            val uid = authManager?.currentUser?.uid ?: "local_user"
+            if (authManager != null) {
+                try {
+                    authManager.syncUserData(uid)
+                } catch (e: Exception) {
+                    Log.w("UserStatsViewModel", "Initial Firestore sync error", e)
+                }
+            }
         }
     }
 
     /**
-     * Factory reset: Clear all user stats, delete cached quests in local database, and restore to 0
+     * Factory reset: Clear all user stats, delete cached quests in local database, delete photos, and wipe Firestore
      */
     fun resetAllUserData(onComplete: (() -> Unit)? = null) {
-        viewModelScope.launch {
-            userStatsDao.insertOrUpdate(UserStatsEntity())
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                userStatsDao.deleteAllUserStats()
+            } catch (e: Exception) {
+                Log.w("UserStatsViewModel", "Failed to delete user stats table", e)
+            }
+            userStatsDao.insertOrUpdate(UserStatsEntity(id = 1))
             try {
                 questDao?.deleteAllQuests()
             } catch (e: Exception) {
-                // ignore
+                Log.w("UserStatsViewModel", "Failed to clear quests", e)
+            }
+            try {
+                passportPhotoDao?.deleteAllPassportPhotos()
+            } catch (e: Exception) {
+                Log.w("UserStatsViewModel", "Failed to clear passport photos", e)
+            }
+            val uid = authManager?.currentUser?.uid ?: "local_user"
+            if (authManager != null) {
+                try {
+                    authManager.resetUserFirestoreData(uid)
+                } catch (e: Exception) {
+                    Log.w("UserStatsViewModel", "Failed to reset Firestore user data", e)
+                }
             }
             previousLocation = null
             _locationState.update { LiveLocationState() }
             _syncState.update { FirestoreSyncState(isSyncing = false, isSynced = true) }
-            onComplete?.invoke()
+            withContext(Dispatchers.Main) {
+                onComplete?.invoke()
+            }
         }
     }
 
@@ -300,8 +329,8 @@ class UserStatsViewModel(
             val updatedBadgeString = existingBadges.joinToString(",")
             userStatsDao.updateUnlockedBadges(updatedBadgeString)
 
-            val targetUid = currentUid ?: authManager?.currentUser?.uid
-            if (targetUid != null && authManager != null) {
+            val targetUid = currentUid ?: authManager?.currentUser?.uid ?: "local_user"
+            if (authManager != null) {
                 culturalBadge?.let { badge ->
                     authManager.saveBadgeToFirestore(targetUid, badge)
                 }
@@ -317,8 +346,8 @@ class UserStatsViewModel(
                 val json = moshi.adapter(com.example.model.Quest::class.java).toJson(quest)
                 questDao?.insertQuest(com.example.data.QuestEntity(id = quest.id, questJson = json, timestamp = System.currentTimeMillis()))
                 
-                val targetUid = authManager?.currentUser?.uid
-                if (targetUid != null && authManager != null) {
+                val targetUid = authManager?.currentUser?.uid ?: "local_user"
+                if (authManager != null) {
                     authManager.saveQuestToFirestore(targetUid, quest)
                     authManager.syncUserData(targetUid)
                 }
@@ -411,7 +440,8 @@ class UserStatsViewModel(
         stopName: String,
         questId: String = "",
         questTitle: String = "",
-        bitmap: Bitmap
+        bitmap: Bitmap,
+        verificationType: String = "AI_VERIFIED"
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -432,7 +462,9 @@ class UserStatsViewModel(
                     photoBase64 = base64String,
                     timestamp = System.currentTimeMillis(),
                     userEmail = userEmail,
-                    syncedToFirebase = true
+                    syncedToFirebase = true,
+                    isVerified = true,
+                    verificationType = verificationType
                 )
 
                 passportPhotoDao?.insertPassportPhoto(entity)

@@ -1643,15 +1643,16 @@ fun ProfileScreen(
                     onClick = {
                         showResetDataConfirmation = false
                         userStatsViewModel?.resetAllUserData {
+                            authViewModel?.signOut()
                             android.widget.Toast.makeText(
                                 context,
                                 l(
                                     currentLanguage,
-                                    "✨ Đã khôi phục cài đặt gốc! Tất cả dữ liệu và nhiệm vụ đã về 0.",
-                                    "✨ Factory reset complete! All stats and quests reset to 0.",
-                                    "✨ 恢复出厂设置成功！所有数据与任务已归零。",
-                                    "✨ 初期化完了！すべてのデータとクエストが0にリセットされました。",
-                                    "✨ 초기화 완료! 모든 데이터와 퀘스트가 0으로 초기화되었습니다."
+                                    "✨ Đã khôi phục cài đặt gốc và đăng xuất thành công!",
+                                    "✨ Factory reset complete! All account data removed & logged out.",
+                                    "✨ 恢复出厂设置成功！已清空所有数据并退出登录。",
+                                    "✨ 初期化完了！すべてのデータを削除してログアウトしました。",
+                                    "✨ 초기화 완료! 모든 데이터 삭제 및 로그아웃 되었습니다."
                                 ),
                                 android.widget.Toast.LENGTH_SHORT
                             ).show()

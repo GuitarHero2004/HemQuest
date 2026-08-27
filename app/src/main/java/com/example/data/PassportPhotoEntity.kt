@@ -14,5 +14,7 @@ data class PassportPhotoEntity(
     val photoBase64: String,
     val timestamp: Long = System.currentTimeMillis(),
     val userEmail: String = "",
-    val syncedToFirebase: Boolean = false
+    val syncedToFirebase: Boolean = false,
+    val isVerified: Boolean = true,
+    val verificationType: String = "AI_VERIFIED"
 )

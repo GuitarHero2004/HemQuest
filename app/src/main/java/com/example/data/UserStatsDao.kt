@@ -34,4 +34,7 @@ interface UserStatsDao {
 
     @Query("UPDATE user_stats SET unlockedBadgeIds = :badgeIds WHERE id = 1")
     suspend fun updateUnlockedBadges(badgeIds: String)
+
+    @Query("DELETE FROM user_stats")
+    suspend fun deleteAllUserStats()
 }

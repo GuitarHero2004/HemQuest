@@ -641,14 +641,6 @@ fun QuestScreen(
                 onVerifyWithAi = { bitmap ->
                     // Keep modal open so the loading state & scanning animation is shown to user
                     viewModel.verifyPhotoChallenge(bitmap)
-                    val currentQuest = uiState.currentQuest
-                    userStatsViewModel.savePassportPhoto(
-                        activeStop.id,
-                        activeStop.name,
-                        currentQuest?.id ?: "",
-                        currentQuest?.title ?: "",
-                        bitmap
-                    )
                 },
                 onDirectConfirmCompletion = { bitmap ->
                     showCameraModal = false
@@ -661,7 +653,8 @@ fun QuestScreen(
                             activeStop.name,
                             currentQuest?.id ?: "",
                             currentQuest?.title ?: "",
-                            bitmap
+                            bitmap,
+                            verificationType = "MANUAL_VERIFIED"
                         )
                     }
                 }
@@ -737,6 +730,18 @@ fun QuestScreen(
                 onConfirmComplete = {
                     viewModel.confirmStopCompletion()
                     userStatsViewModel.incrementCheckpoints()
+                    val capturedBitmap = uiState.lastCapturedBitmap
+                    val currentQuest = uiState.currentQuest
+                    if (activeStop != null && capturedBitmap != null) {
+                        userStatsViewModel.savePassportPhoto(
+                            activeStop.id,
+                            activeStop.name,
+                            currentQuest?.id ?: "",
+                            currentQuest?.title ?: "",
+                            capturedBitmap,
+                            verificationType = "AI_VERIFIED"
+                        )
+                    }
                 },
                 onDismiss = {
                     viewModel.closePhotoVerificationSheet()

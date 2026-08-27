@@ -22,4 +22,7 @@ interface PassportPhotoDao {
 
     @Query("DELETE FROM passport_photos WHERE id = :id")
     suspend fun deletePassportPhoto(id: String)
+
+    @Query("DELETE FROM passport_photos")
+    suspend fun deleteAllPassportPhotos()
 }

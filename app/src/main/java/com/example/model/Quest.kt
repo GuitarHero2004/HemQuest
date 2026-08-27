@@ -66,10 +66,11 @@ data class Quest(
     @Json(name = "stops") val stops: List<QuestStop>
 )
 
+@JsonClass(generateAdapter = true)
 data class PhotoVerificationResult(
-    val status: VerificationStatus,
-    val observation: String,
-    val detailNotes: String
+    @Json(name = "status") val status: VerificationStatus = VerificationStatus.LIKELY_MATCH,
+    @Json(name = "observation") val observation: String = "",
+    @Json(name = "detailNotes") val detailNotes: String = ""
 )
 
 data class QuestRequest(
