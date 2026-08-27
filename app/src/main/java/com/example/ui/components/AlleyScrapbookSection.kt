@@ -63,21 +63,21 @@ fun AlleyScrapbookSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 14.dp)
             .testTag("alley_scrapbook_section")
     ) {
-        // Header Bar
+        // Header Bar with Top Margin & Clean Spacing
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp, start = 4.dp, end = 4.dp),
+                .padding(top = 2.dp, bottom = 14.dp, start = 2.dp, end = 2.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
                         .background(
                             Brush.linearGradient(
@@ -90,10 +90,10 @@ fun AlleyScrapbookSection(
                         imageVector = Icons.Default.MilitaryTech,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
                         text = l(
@@ -104,10 +104,11 @@ fun AlleyScrapbookSection(
                             "路地スタンプパスポート",
                             "골목 스탬프 여권"
                         ),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.5.sp,
+                        fontWeight = FontWeight.Black,
                         color = Ink900
                     )
+                    Spacer(modifier = Modifier.height(1.dp))
                     Text(
                         text = l(
                             currentLanguage,
@@ -117,7 +118,7 @@ fun AlleyScrapbookSection(
                             "解除されたヘリテージスタンプ",
                             "해금된 헤리티지 스탬프 업적"
                         ),
-                        fontSize = 11.sp,
+                        fontSize = 11.5.sp,
                         color = Ink600
                     )
                 }
@@ -152,16 +153,16 @@ fun AlleyScrapbookSection(
             // Empty State: Digitized Passport Book Preview with locked stamp slots
             Card(
                 colors = CardDefaults.cardColors(containerColor = PaperWhite),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(22.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(20.dp))
+                    .border(1.2.dp, Color(0xFFE2E8F0), RoundedCornerShape(22.dp))
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(18.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -191,7 +192,7 @@ fun AlleyScrapbookSection(
                                     "パスポート帳はまだ空です",
                                     "골목 여권 스탬프가 비어있습니다"
                                 ),
-                                fontSize = 14.sp,
+                                fontSize = 14.5.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Ink900
                             )
@@ -212,7 +213,7 @@ fun AlleyScrapbookSection(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Locked Stamp Placeholders Row
                     Row(
@@ -223,31 +224,39 @@ fun AlleyScrapbookSection(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(90.dp)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(Color(0xFFF9FAFB))
+                                    .height(92.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color(0xFFF8FAFC))
                                     .border(
                                         width = 1.dp,
-                                        color = Color(0xFFD1D5DB),
-                                        shape = RoundedCornerShape(14.dp)
+                                        color = Color(0xFFE2E8F0),
+                                        shape = RoundedCornerShape(16.dp)
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Lock,
-                                        contentDescription = null,
-                                        tint = Color(0xFF9CA3AF),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFFF1F5F9)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = null,
+                                            tint = Color(0xFF94A3B8),
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     Text(
                                         text = "${l(currentLanguage, "Dấu", "Stamp", "印章", "スタンプ", "스탬프")} #${index + 1}",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF9CA3AF)
+                                        fontSize = 11.5.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF64748B)
                                     )
                                 }
                             }

@@ -94,8 +94,9 @@ class MainActivity : ComponentActivity() {
     private val repository by lazy { OfflineQuestRepository(GeminiQuestRepository(), database.questDao()) }
     private val prefs by lazy { getSharedPreferences("hemquest_prefs", MODE_PRIVATE) }
     private val authManager by lazy { AuthManager(this, database.userStatsDao(), database.questDao()) }
+    private val notificationManager by lazy { com.example.util.AppNotificationManager.getInstance(this) }
     private val viewModel: QuestViewModel by viewModels { QuestViewModelFactory(repository, prefs) }
-    private val userStatsViewModel: UserStatsViewModel by viewModels { UserStatsViewModelFactory(database.userStatsDao(), database.questDao(), authManager) }
+    private val userStatsViewModel: UserStatsViewModel by viewModels { UserStatsViewModelFactory(database.userStatsDao(), database.questDao(), authManager, notificationManager) }
     private val authViewModel: AuthViewModel by viewModels { AuthViewModelFactory(authManager) }
 
     @androidx.compose.material3.ExperimentalMaterial3Api
@@ -151,6 +152,9 @@ fun HemQuestApp(
     val syncState by userStatsViewModel.syncState.collectAsStateWithLifecycle()
     val authUiState by authViewModel.uiState.collectAsStateWithLifecycle()
     val currentUid = authUiState.userProfile?.uid
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val notificationManager = remember { com.example.util.AppNotificationManager.getInstance(context) }
+    val currentNotification by notificationManager.currentInAppNotification.collectAsStateWithLifecycle()
     
     Box(
         modifier = Modifier
@@ -162,6 +166,13 @@ fun HemQuestApp(
             viewModel = viewModel,
             userStatsViewModel = userStatsViewModel,
             authViewModel = authViewModel
+        )
+
+        // In-App Notification Banner Overlay for XP & Level Ups
+        com.example.ui.components.InAppNotificationBanner(
+            notification = currentNotification,
+            onDismiss = { notificationManager.dismissInAppNotification() },
+            modifier = Modifier.align(Alignment.TopCenter)
         )
 
         // Global Synchronization & Shimmer Feedback Overlay

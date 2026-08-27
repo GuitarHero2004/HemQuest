@@ -39,7 +39,8 @@ data class FirestoreSyncState(
 class UserStatsViewModel(
     private val userStatsDao: UserStatsDao,
     private val questDao: QuestDao? = null,
-    private val authManager: AuthManager? = null
+    private val authManager: AuthManager? = null,
+    private val notificationManager: com.example.util.AppNotificationManager? = null
 ) : ViewModel() {
 
     val userStats: StateFlow<UserStatsEntity> = userStatsDao.getUserStats()
@@ -154,14 +155,62 @@ class UserStatsViewModel(
 
     fun incrementCheckpoints() {
         viewModelScope.launch {
+            val oldStats = userStatsDao.getUserStatsSync() ?: UserStatsEntity()
+            val oldLevel = com.example.util.QuestLevelUtils.calculateLevelInfo(oldStats.totalXp).level
+
             userStatsDao.incrementCheckpoints()
             userStatsDao.addXp(50)
+
+            val newStats = userStatsDao.getUserStatsSync() ?: UserStatsEntity()
+            val newLevelInfo = com.example.util.QuestLevelUtils.calculateLevelInfo(newStats.totalXp)
+
+            if (newLevelInfo.level > oldLevel) {
+                notificationManager?.triggerXpNotification(
+                    title = "🎉 THĂNG CẤP LEVEL ${newLevelInfo.level}!",
+                    message = "Chúc mừng! Bạn đạt '${newLevelInfo.titleVi}' và nhận +50 XP từ chặng!",
+                    xpAmount = 50,
+                    isLevelUp = true,
+                    iconEmoji = "🎉"
+                )
+            } else {
+                notificationManager?.triggerXpNotification(
+                    title = "📍 Hoàn Thành Chặng!",
+                    message = "Bạn nhận +50 Quest XP! Tiếp tục tiến bước lên Cấp ${newLevelInfo.level + 1}.",
+                    xpAmount = 50,
+                    isLevelUp = false,
+                    iconEmoji = "📍"
+                )
+            }
         }
     }
 
     fun addXp(xp: Int) {
         viewModelScope.launch {
+            val oldStats = userStatsDao.getUserStatsSync() ?: UserStatsEntity()
+            val oldLevel = com.example.util.QuestLevelUtils.calculateLevelInfo(oldStats.totalXp).level
+
             userStatsDao.addXp(xp)
+
+            val newStats = userStatsDao.getUserStatsSync() ?: UserStatsEntity()
+            val newLevelInfo = com.example.util.QuestLevelUtils.calculateLevelInfo(newStats.totalXp)
+
+            if (newLevelInfo.level > oldLevel) {
+                notificationManager?.triggerXpNotification(
+                    title = "🎉 THĂNG CẤP LEVEL ${newLevelInfo.level}!",
+                    message = "Chúc mừng! Bạn mở khóa danh hiệu '${newLevelInfo.titleVi}' với +$xp Quest XP!",
+                    xpAmount = xp,
+                    isLevelUp = true,
+                    iconEmoji = "🏆"
+                )
+            } else {
+                notificationManager?.triggerXpNotification(
+                    title = "⚡ Nhận +$xp Quest XP!",
+                    message = "Tích lũy ${newLevelInfo.currentLevelXp}/${newLevelInfo.requiredLevelXp} XP để đạt Cấp ${newLevelInfo.level + 1}.",
+                    xpAmount = xp,
+                    isLevelUp = false,
+                    iconEmoji = "⚡"
+                )
+            }
         }
     }
 
@@ -174,12 +223,35 @@ class UserStatsViewModel(
         currentUid: String? = null
     ) {
         viewModelScope.launch {
+            val oldStats = userStatsDao.getUserStatsSync() ?: UserStatsEntity()
+            val oldLevel = com.example.util.QuestLevelUtils.calculateLevelInfo(oldStats.totalXp).level
+
             userStatsDao.incrementCompletedQuests()
             userStatsDao.addXp(xpReward)
             userStatsDao.addDistance(distanceMeters)
             userStatsDao.addSteps((distanceMeters / 0.75).toInt())
 
             val stats = userStatsDao.getUserStatsSync() ?: UserStatsEntity()
+            val newLevelInfo = com.example.util.QuestLevelUtils.calculateLevelInfo(stats.totalXp)
+
+            if (newLevelInfo.level > oldLevel) {
+                notificationManager?.triggerXpNotification(
+                    title = "🎉 THĂNG CẤP MỚI LEVEL ${newLevelInfo.level}!",
+                    message = "Hoàn thành chuyến đi bộ! Đạt danh hiệu '${newLevelInfo.titleVi}' (+$xpReward Quest XP)!",
+                    xpAmount = xpReward,
+                    isLevelUp = true,
+                    iconEmoji = "👑"
+                )
+            } else {
+                notificationManager?.triggerXpNotification(
+                    title = "🚶 Hoàn Thành Chuyến Đi Bộ!",
+                    message = "Bạn đã hoàn thành '${questTitle ?: "Chuyến đi di sản"}' và nhận +$xpReward Quest XP!",
+                    xpAmount = xpReward,
+                    isLevelUp = false,
+                    iconEmoji = "🌟"
+                )
+            }
+
             val existingBadges = stats.unlockedBadgeIds.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toMutableSet()
 
             val newCount = stats.completedQuestsCount + 1

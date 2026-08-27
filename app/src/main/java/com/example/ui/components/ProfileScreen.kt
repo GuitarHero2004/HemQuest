@@ -133,6 +133,7 @@ fun ProfileScreen(
         LanguageOption("ko", "🇰🇷", "한국어", "Korean")
     )
 
+    var showLevelRoadmapDialog by remember { mutableStateOf(false) }
     var offlineModeEnabled by remember { mutableStateOf(true) }
     var notificationsEnabled by remember { mutableStateOf(true) }
     var pendingLanguage by remember { mutableStateOf<LanguageOption?>(null) }
@@ -250,73 +251,148 @@ fun ProfileScreen(
                                 )
                             }
 
-                            // Level Badge
-                            val calculatedLevel = (userStats.totalXp / 250) + 1
-                            val currentLevelXp = userStats.totalXp % 250
-                            val nextLevelXp = 250
-                            val xpProgress = (currentLevelXp.toFloat() / nextLevelXp.toFloat()).coerceIn(0.05f, 1f)
+                            // Level Badge & XP System
+                            val levelInfo = com.example.util.QuestLevelUtils.calculateLevelInfo(userStats.totalXp, currentLanguage)
 
                             Surface(
                                 color = SunGold.copy(alpha = 0.2f),
                                 shape = CircleShape,
-                                modifier = Modifier.padding(top = 8.dp)
+                                border = BorderStroke(1.dp, SunGold),
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .clickable { showLevelRoadmapDialog = true }
+                                    .testTag("level_badge_pill")
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "⚡",
-                                        fontSize = 13.sp
+                                        text = levelInfo.iconEmoji,
+                                        fontSize = 14.sp
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "${l(currentLanguage, "Cấp $calculatedLevel", "Level $calculatedLevel", "$calculatedLevel 级", "レベル $calculatedLevel", "레벨 $calculatedLevel")} • ${l(currentLanguage, "Người Khám Phá Hẻm", "Alley Explorer", "胡同探索达人", "路地裏エクスプローラー", "골목 탐험가")}",
-                                        fontSize = 12.sp,
+                                        text = "${l(currentLanguage, "Cấp ${levelInfo.level}", "Level ${levelInfo.level}", "${levelInfo.level} 级", "レベル ${levelInfo.level}", "레벨 ${levelInfo.level}")} • ${if (currentLanguage == "vi") levelInfo.titleVi else levelInfo.titleEn}",
+                                        fontSize = 12.5.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Ink900
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                        contentDescription = null,
+                                        tint = Ink600,
+                                        modifier = Modifier.size(11.dp)
                                     )
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(14.dp))
 
-                            // XP Progress Bar
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "$currentLevelXp / $nextLevelXp XP (${userStats.totalXp} XP tổng)",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Ink600
+                            // XP Visual Progress Bar Card
+                            Surface(
+                                shape = RoundedCornerShape(18.dp),
+                                color = Color(0xFFF8FAFC),
+                                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showLevelRoadmapDialog = true }
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(text = "⚡", fontSize = 14.sp)
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = "${levelInfo.currentLevelXp} / ${levelInfo.requiredLevelXp} XP",
+                                                fontSize = 12.5.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = Ink900
+                                            )
+                                            Text(
+                                                text = " (${userStats.totalXp} XP ${l(currentLanguage, "tổng", "total", "总计", "合計", "총")})",
+                                                fontSize = 11.5.sp,
+                                                color = Ink600
+                                            )
+                                        }
+
+                                        Text(
+                                            text = l(
+                                                currentLanguage,
+                                                "Còn ${levelInfo.requiredLevelXp - levelInfo.currentLevelXp} XP lên Cấp ${levelInfo.level + 1}",
+                                                "${levelInfo.requiredLevelXp - levelInfo.currentLevelXp} XP to Level ${levelInfo.level + 1}",
+                                                "还需 ${levelInfo.requiredLevelXp - levelInfo.currentLevelXp} XP",
+                                                "レベル${levelInfo.level + 1}まであと ${levelInfo.requiredLevelXp - levelInfo.currentLevelXp} XP",
+                                                "레벨 ${levelInfo.level + 1}까지 ${levelInfo.requiredLevelXp - levelInfo.currentLevelXp} XP 남음"
+                                            ),
+                                            fontSize = 11.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = GrabGreen
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Visual Progress Track
+                                    LinearProgressIndicator(
+                                        progress = { levelInfo.progressFraction },
+                                        color = GrabGreen,
+                                        trackColor = GrabGreen.copy(alpha = 0.15f),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(10.dp)
+                                            .clip(CircleShape)
                                     )
-                                    Text(
-                                        text = l(
-                                            currentLanguage,
-                                            "Còn ${nextLevelXp - currentLevelXp} XP lên Cấp ${calculatedLevel + 1}",
-                                            "${nextLevelXp - currentLevelXp} XP to Level ${calculatedLevel + 1}",
-                                            "还需 ${nextLevelXp - currentLevelXp} XP 升至 ${calculatedLevel + 1} 级",
-                                            "レベル${calculatedLevel + 1}まであと ${nextLevelXp - currentLevelXp} XP",
-                                            "레벨 ${calculatedLevel + 1}까지 ${nextLevelXp - currentLevelXp} XP 남음"
-                                        ),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = GrabGreen
-                                    )
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "🎁 " + if (currentLanguage == "vi") levelInfo.perkVi else levelInfo.perkEn,
+                                            fontSize = 11.sp,
+                                            color = Ink600,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
+                                        )
+
+                                        Spacer(modifier = Modifier.width(6.dp))
+
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = GrabGreen.copy(alpha = 0.15f),
+                                            border = BorderStroke(0.8.dp, GrabGreen.copy(alpha = 0.4f))
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = l(currentLanguage, "Xem Lộ Trình", "Roadmap", "查看路线图", "マップを見る", "로드맵 보기"),
+                                                    fontSize = 10.5.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = ForestGreen
+                                                )
+                                                Spacer(modifier = Modifier.width(3.dp))
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                                    contentDescription = null,
+                                                    tint = ForestGreen,
+                                                    modifier = Modifier.size(9.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                LinearProgressIndicator(
-                                    progress = { xpProgress },
-                                    color = GrabGreen,
-                                    trackColor = GrabGreen.copy(alpha = 0.15f),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(8.dp)
-                                        .clip(CircleShape)
-                                )
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -1421,6 +1497,15 @@ fun ProfileScreen(
                 }
             }
         }
+
+    // Quest Level Roadmap & Perks Modal
+    if (showLevelRoadmapDialog) {
+        QuestLevelRoadmapDialog(
+            totalXp = userStats.totalXp,
+            currentLanguage = currentLanguage,
+            onDismiss = { showLevelRoadmapDialog = false }
+        )
+    }
 
     // Confirmation Modal for Logout
     if (showLogoutConfirmation) {
