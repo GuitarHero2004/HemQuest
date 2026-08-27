@@ -88,11 +88,13 @@ import com.example.util.l
 import com.example.auth.AuthManager
 import com.example.auth.AuthViewModel
 import com.example.auth.AuthViewModelFactory
+import com.example.repository.UserAuthRepository
 
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
     private val repository by lazy { OfflineQuestRepository(GeminiQuestRepository(), database.questDao()) }
     private val prefs by lazy { getSharedPreferences("hemquest_prefs", MODE_PRIVATE) }
+    private val userAuthRepository by lazy { UserAuthRepository(this, database.userStatsDao()) }
     private val authManager by lazy { AuthManager(this, database.userStatsDao(), database.questDao(), database.passportPhotoDao()) }
     private val notificationManager by lazy { com.example.util.AppNotificationManager.getInstance(this) }
     private val viewModel: QuestViewModel by viewModels { QuestViewModelFactory(repository, prefs) }
@@ -102,6 +104,8 @@ class MainActivity : ComponentActivity() {
     @androidx.compose.material3.ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Trigger auth repository observer check
+        userAuthRepository.triggerUserInitialization()
         enableEdgeToEdge()
         setContent {
             HemQuestTheme {
