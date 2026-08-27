@@ -1,5 +1,7 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +33,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -297,16 +300,16 @@ fun DigitalStampCard(
     currentLanguage: String,
     onClick: () -> Unit
 ) {
-    val categoryIcon = getCategoryIcon(stop.category)
     val stampThemeColors = getStampColors(stop.category)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = PaperWhite),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        shape = RoundedCornerShape(22.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.5.dp),
         modifier = Modifier
-            .width(160.dp)
-            .height(200.dp)
+            .width(172.dp)
+            .height(245.dp)
+            .border(1.2.dp, stampThemeColors.first.copy(alpha = 0.25f), RoundedCornerShape(22.dp))
             .clickable { onClick() }
     ) {
         Column(
@@ -322,87 +325,51 @@ fun DigitalStampCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "PASSED",
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Black,
-                    color = stampThemeColors.first,
-                    modifier = Modifier
-                        .background(
-                            stampThemeColors.first.copy(alpha = 0.12f),
-                            RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                )
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = ForestGreen,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-
-            // Central Iconic Stamp Badge Emblem
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(vertical = 4.dp)
-            ) {
-                // Outer Dashed Circle Effect
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(stampThemeColors.second)
-                        .border(2.dp, stampThemeColors.first, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(stampThemeColors.first, stampThemeColors.first.copy(alpha = 0.85f))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = categoryIcon,
-                            contentDescription = stop.name,
-                            tint = Color.White,
-                            modifier = Modifier.size(34.dp)
-                        )
-                    }
-                }
-
-                // Diagonal Rubber Postmark Watermark overlay
-                Box(
-                    modifier = Modifier
-                        .rotate(-15f)
-                        .background(
-                            Color(0xDD111827),
-                            RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = stampThemeColors.first.copy(alpha = 0.12f),
+                    border = BorderStroke(0.8.dp, stampThemeColors.first.copy(alpha = 0.3f))
                 ) {
                     Text(
-                        text = "HẺM STAMP",
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFDE047)
+                        text = "PASSED",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        color = stampThemeColors.first,
+                        letterSpacing = 0.5.sp,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = ForestGreen,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
-            // Landmark Details
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Central Customized Saigon Heritage Postmark Graphic
+            CustomHeritageStampGraphic(
+                stop = stop,
+                stampThemeColors = stampThemeColors,
+                sizeDp = 84
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Landmark Name & Category Text
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = stop.name,
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Black,
                     color = Ink900,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -419,13 +386,143 @@ fun DigitalStampCard(
                 )
             }
 
-            // Bottom XP / Tap clue label
-            Text(
-                text = "+100 XP • ${l(currentLanguage, "Xem Bằng Chứng", "View Badge", "查看勋章", "詳細を見る", "뱃지 보기")}",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = stampThemeColors.first
-            )
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Bottom XP / Tap clue label Surface Pill
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = stampThemeColors.first.copy(alpha = 0.1f),
+                border = BorderStroke(0.8.dp, stampThemeColors.first.copy(alpha = 0.25f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(vertical = 5.dp, horizontal = 6.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "+100 XP • ${l(currentLanguage, "Xem Chi Tiết", "View Details", "查看详情", "詳細を見る", "상세 보기")}",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = stampThemeColors.first,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomHeritageStampGraphic(
+    stop: QuestStop,
+    stampThemeColors: Pair<Color, Color>,
+    sizeDp: Int = 84
+) {
+    val categoryIcon = getCategoryIcon(stop.category)
+    val stampColor = stampThemeColors.first
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size((sizeDp + 10).dp)
+    ) {
+        // Outer Vintage Stamp Circular Seal Frame
+        Surface(
+            shape = CircleShape,
+            color = stampThemeColors.second,
+            border = BorderStroke(2.dp, stampColor),
+            modifier = Modifier.size(sizeDp.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Inner Dashed Rings (Postmark Seal Lines)
+                Box(
+                    modifier = Modifier
+                        .size((sizeDp - 12).dp)
+                        .clip(CircleShape)
+                        .border(
+                            width = 1.dp,
+                            color = stampColor.copy(alpha = 0.5f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Central Color Gradient Emblem
+                    Box(
+                        modifier = Modifier
+                            .size((sizeDp - 22).dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        stampColor,
+                                        stampColor.copy(alpha = 0.88f)
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = categoryIcon,
+                            contentDescription = stop.name,
+                            tint = Color.White,
+                            modifier = Modifier.size((sizeDp / 2.5).dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Tilted Postmark Rubber Stamp Mark with Postal Cancellation Waves
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .rotate(-14f)
+                .offset(y = 2.dp)
+        ) {
+            // Wavy Postal Ink Lines
+            Canvas(modifier = Modifier.size(width = 16.dp, height = 22.dp)) {
+                val path = androidx.compose.ui.graphics.Path()
+                val waveColor = stampColor.copy(alpha = 0.85f)
+                for (i in 0..2) {
+                    val y = 5f + i * 6f
+                    path.reset()
+                    path.moveTo(0f, y)
+                    path.quadraticTo(4.dp.toPx(), y - 3.dp.toPx(), 8.dp.toPx(), y)
+                    path.quadraticTo(12.dp.toPx(), y + 3.dp.toPx(), 16.dp.toPx(), y)
+                    drawPath(
+                        path = path,
+                        color = waveColor,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.6.dp.toPx())
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(2.dp))
+
+            // Postmark Rubber Badge
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = Ink900.copy(alpha = 0.94f),
+                border = BorderStroke(1.dp, Color(0xFFFDE047)),
+                shadowElevation = 3.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "★ SÀI GÒN STAMP ★",
+                        fontSize = (sizeDp * 0.09).sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFFFDE047),
+                        letterSpacing = 0.4.sp
+                    )
+                }
+            }
         }
     }
 }
@@ -490,34 +587,12 @@ fun StampCertificateDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Large Glowing Iconic Badge
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(110.dp)
-                        .clip(CircleShape)
-                        .background(stampThemeColors.second)
-                        .border(3.dp, stampThemeColors.first, CircleShape)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(90.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(stampThemeColors.first, stampThemeColors.first.copy(alpha = 0.85f))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = categoryIcon,
-                            contentDescription = stop.name,
-                            tint = Color.White,
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
-                }
+                // Large Glowing Iconic Saigon Heritage Postmark Seal
+                CustomHeritageStampGraphic(
+                    stop = stop,
+                    stampThemeColors = stampThemeColors,
+                    sizeDp = 110
+                )
 
                 Spacer(modifier = Modifier.height(14.dp))
 
