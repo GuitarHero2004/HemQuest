@@ -93,10 +93,10 @@ class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
     private val repository by lazy { OfflineQuestRepository(GeminiQuestRepository(), database.questDao()) }
     private val prefs by lazy { getSharedPreferences("hemquest_prefs", MODE_PRIVATE) }
-    private val authManager by lazy { AuthManager(this, database.userStatsDao(), database.questDao()) }
+    private val authManager by lazy { AuthManager(this, database.userStatsDao(), database.questDao(), database.passportPhotoDao()) }
     private val notificationManager by lazy { com.example.util.AppNotificationManager.getInstance(this) }
     private val viewModel: QuestViewModel by viewModels { QuestViewModelFactory(repository, prefs) }
-    private val userStatsViewModel: UserStatsViewModel by viewModels { UserStatsViewModelFactory(database.userStatsDao(), database.questDao(), authManager, notificationManager) }
+    private val userStatsViewModel: UserStatsViewModel by viewModels { UserStatsViewModelFactory(database.userStatsDao(), database.questDao(), authManager, notificationManager, database.passportPhotoDao()) }
     private val authViewModel: AuthViewModel by viewModels { AuthViewModelFactory(authManager) }
 
     @androidx.compose.material3.ExperimentalMaterial3Api

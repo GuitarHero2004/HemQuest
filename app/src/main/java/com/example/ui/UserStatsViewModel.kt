@@ -1,14 +1,19 @@
 package com.example.ui
 
+import android.graphics.Bitmap
 import android.location.Location
+import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.auth.AuthManager
+import com.example.data.PassportPhotoDao
+import com.example.data.PassportPhotoEntity
 import com.example.data.QuestDao
 import com.example.data.UserStatsDao
 import com.example.data.UserStatsEntity
 import com.example.model.CulturalBadge
 import com.example.util.IdGenerator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 
 data class LiveLocationState(
     val latitude: Double = 10.7741,
@@ -40,7 +46,8 @@ class UserStatsViewModel(
     private val userStatsDao: UserStatsDao,
     private val questDao: QuestDao? = null,
     private val authManager: AuthManager? = null,
-    private val notificationManager: com.example.util.AppNotificationManager? = null
+    private val notificationManager: com.example.util.AppNotificationManager? = null,
+    private val passportPhotoDao: PassportPhotoDao? = null
 ) : ViewModel() {
 
     val userStats: StateFlow<UserStatsEntity> = userStatsDao.getUserStats()
@@ -49,6 +56,14 @@ class UserStatsViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = UserStatsEntity()
+        )
+
+    val passportPhotos: StateFlow<List<PassportPhotoEntity>> = (passportPhotoDao?.getAllPassportPhotos()
+        ?: MutableStateFlow(emptyList()))
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
         )
 
     private val _locationState = MutableStateFlow(LiveLocationState())
@@ -363,6 +378,53 @@ class UserStatsViewModel(
                         errorMessage = e.localizedMessage ?: "Sync error"
                     )
                 }
+            }
+        }
+    }
+
+    /**
+     * Store a snapped quest marker photo into Room database & Firebase Firestore
+     */
+    fun savePassportPhoto(
+        stopId: String,
+        stopName: String,
+        questId: String = "",
+        questTitle: String = "",
+        bitmap: Bitmap
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 75, byteArrayOutputStream)
+                val base64String = Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.NO_WRAP)
+
+                val userEmail = authManager?.currentUser?.email ?: ""
+                val uid = authManager?.currentUser?.uid ?: "local_user"
+                val photoId = "photo_${stopId.replace(" ", "_")}_${System.currentTimeMillis()}"
+
+                val entity = PassportPhotoEntity(
+                    id = photoId,
+                    stopId = stopId,
+                    stopName = stopName,
+                    questId = questId,
+                    questTitle = questTitle,
+                    photoBase64 = base64String,
+                    timestamp = System.currentTimeMillis(),
+                    userEmail = userEmail,
+                    syncedToFirebase = true
+                )
+
+                passportPhotoDao?.insertPassportPhoto(entity)
+                authManager?.savePassportPhotoToFirestore(uid, entity)
+
+                notificationManager?.triggerXpNotification(
+                    title = "📸 Đã lưu ảnh con dấu vào Sổ Passport!",
+                    message = "Ảnh chụp tại $stopName đã được lưu vào Sổ Passport Hẻm và đồng bộ Firestore.",
+                    xpAmount = 50,
+                    iconEmoji = "📸"
+                )
+            } catch (e: Exception) {
+                android.util.Log.w("UserStatsViewModel", "Error saving passport photo", e)
             }
         }
     }

@@ -7,6 +7,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.example.data.PassportPhotoDao
+import com.example.data.PassportPhotoEntity
 import com.example.data.QuestDao
 import com.example.data.QuestEntity
 import com.example.data.UserStatsDao
@@ -53,7 +55,8 @@ sealed class AuthState {
 class AuthManager(
     private val context: Context,
     private val userStatsDao: UserStatsDao? = null,
-    private val questDao: QuestDao? = null
+    private val questDao: QuestDao? = null,
+    private val passportPhotoDao: PassportPhotoDao? = null
 ) {
     private val auth: FirebaseAuth? by lazy {
         try { FirebaseAuth.getInstance() } catch (e: Exception) { null }
@@ -66,6 +69,21 @@ class AuthManager(
     }
     private val prefs by lazy {
         context.getSharedPreferences("hemquest_local_auth_db", Context.MODE_PRIVATE)
+    }
+
+    /**
+     * Resolves the user document ID in Firestore.
+     * Uses the user's email if available (e.g. "anhminhnts2004@gmail.com"), falling back to UID if email is empty.
+     */
+    fun getUserDocId(uid: String, email: String? = null): String {
+        val userEmail = email?.ifBlank { null }
+            ?: currentUser?.email?.ifBlank { null }
+            ?: prefs.getString("local_user_email", null)?.ifBlank { null }
+        return if (!userEmail.isNullOrBlank()) {
+            userEmail.trim().lowercase()
+        } else {
+            uid
+        }
     }
 
     val currentUser: FirebaseUser?
@@ -420,10 +438,11 @@ class AuthManager(
     }
 
     /**
-     * Synchronize local Room database stats and quests to Firestore under users/{uid}/
+     * Synchronize local Room database stats, quests, badges, and passport photos to Firestore under users/{user_email_or_uid}/
      */
     suspend fun syncUserData(uid: String) {
         val fs = firestore ?: return
+        val docId = getUserDocId(uid)
         try {
             // 1. Sync User Stats
             userStatsDao?.let { dao ->
@@ -439,11 +458,11 @@ class AuthManager(
                         "unlockedBadgeIds" to stats.unlockedBadgeIds,
                         "lastUpdated" to System.currentTimeMillis()
                     )
-                    fs.collection("users").document(uid)
+                    fs.collection("users").document(docId)
                         .collection("stats").document("current")
                         .set(statsMap, SetOptions.merge())
                         .await()
-                    Log.d("AuthManager", "Successfully synced user stats to Firestore for uid: $uid")
+                    Log.d("AuthManager", "Successfully synced user stats to Firestore for docId: $docId")
                 }
             }
 
@@ -457,12 +476,12 @@ class AuthManager(
                             "questJson" to quest.questJson,
                             "timestamp" to quest.timestamp
                         )
-                        fs.collection("users").document(uid)
+                        fs.collection("users").document(docId)
                             .collection("quests").document(quest.id)
                             .set(questMap, SetOptions.merge())
                             .await()
                     }
-                    Log.d("AuthManager", "Successfully synced ${quests.size} quests to Firestore for uid: $uid")
+                    Log.d("AuthManager", "Successfully synced ${quests.size} quests to Firestore for docId: $docId")
                 }
             }
 
@@ -491,24 +510,48 @@ class AuthManager(
                             "unlockedAt" to System.currentTimeMillis(),
                             "rarity" to if (badgeId.startsWith("quest_badge_")) "LEGENDARY" else "RARE"
                         )
-                        fs.collection("users").document(uid)
+                        fs.collection("users").document(docId)
                             .collection("badges").document(badgeId)
                             .set(badgeDoc, SetOptions.merge())
                             .await()
                     }
-                    Log.d("AuthManager", "Successfully synced ${badgeIds.size} badges to Firestore for uid: $uid")
+                    Log.d("AuthManager", "Successfully synced ${badgeIds.size} badges to Firestore for docId: $docId")
                 }
             }
+
+            // 4. Sync Passport Photos Collection
+            passportPhotoDao?.let { dao ->
+                val photos = dao.getAllPassportPhotosSync()
+                for (photo in photos) {
+                    val photoMap = hashMapOf<String, Any>(
+                        "id" to photo.id,
+                        "stopId" to photo.stopId,
+                        "stopName" to photo.stopName,
+                        "questId" to photo.questId,
+                        "questTitle" to photo.questTitle,
+                        "photoBase64" to photo.photoBase64,
+                        "timestamp" to photo.timestamp,
+                        "userEmail" to photo.userEmail,
+                        "uid" to uid
+                    )
+                    fs.collection("users").document(docId)
+                        .collection("photos").document(photo.id)
+                        .set(photoMap, SetOptions.merge())
+                        .await()
+                }
+                Log.d("AuthManager", "Successfully synced ${photos.size} passport photos to Firestore for docId: $docId")
+            }
         } catch (e: Exception) {
-            Log.w("AuthManager", "Failed to sync local data to Firestore for $uid", e)
+            Log.w("AuthManager", "Failed to sync local data to Firestore for $docId", e)
         }
     }
 
     /**
-     * Directly save an unlocked CulturalBadge document to Firestore under users/{uid}/badges/{badgeId}
+     * Directly save an unlocked CulturalBadge document to Firestore under users/{user_email_or_uid}/badges/{badgeId}
      */
     suspend fun saveBadgeToFirestore(uid: String, badge: CulturalBadge) {
         val fs = firestore ?: return
+        val docId = getUserDocId(uid)
         try {
             val badgeMap = hashMapOf<String, Any>(
                 "id" to badge.id,
@@ -522,13 +565,42 @@ class AuthManager(
                 "rarity" to badge.rarity,
                 "culturalPointsEarned" to badge.culturalPointsEarned
             )
-            fs.collection("users").document(uid)
+            fs.collection("users").document(docId)
                 .collection("badges").document(badge.id)
                 .set(badgeMap, SetOptions.merge())
                 .await()
-            Log.d("AuthManager", "Saved cultural badge ${badge.id} with icon ${badge.iconEmoji} to Firestore")
+            Log.d("AuthManager", "Saved cultural badge ${badge.id} for $docId to Firestore")
         } catch (e: Exception) {
             Log.w("AuthManager", "Failed to save badge ${badge.id} to Firestore", e)
+        }
+    }
+
+    /**
+     * Directly save a snapped quest marker photo to Firestore under users/{user_email_or_uid}/photos/{photoId}
+     */
+    suspend fun savePassportPhotoToFirestore(uid: String, photo: PassportPhotoEntity) {
+        val fs = firestore ?: return
+        val userEmail = currentUser?.email ?: photo.userEmail
+        val docId = getUserDocId(uid, userEmail)
+        try {
+            val photoMap = hashMapOf<String, Any>(
+                "id" to photo.id,
+                "stopId" to photo.stopId,
+                "stopName" to photo.stopName,
+                "questId" to photo.questId,
+                "questTitle" to photo.questTitle,
+                "photoBase64" to photo.photoBase64,
+                "timestamp" to photo.timestamp,
+                "userEmail" to userEmail,
+                "uid" to uid
+            )
+            fs.collection("users").document(docId)
+                .collection("photos").document(photo.id)
+                .set(photoMap, SetOptions.merge())
+                .await()
+            Log.d("AuthManager", "Saved passport photo ${photo.id} under users/$docId/photos in Firestore")
+        } catch (e: Exception) {
+            Log.w("AuthManager", "Failed to save passport photo to Firestore", e)
         }
     }
 
@@ -537,18 +609,52 @@ class AuthManager(
      */
     suspend fun fetchUserDataFromFirestore(uid: String): Result<UserStatsEntity?> {
         val fs = firestore ?: return Result.failure(Exception("Firestore not initialized"))
+        val docId = getUserDocId(uid)
         return try {
-            val docRef = fs.collection("users").document(uid)
+            val docRef = fs.collection("users").document(docId)
                 .collection("stats").document("current")
             val snapshot = docRef.get().await()
 
-            // Also fetch badges subcollection
+            // Fetch badges subcollection
             val badgesSnapshot = try {
-                fs.collection("users").document(uid).collection("badges").get().await()
+                fs.collection("users").document(docId).collection("badges").get().await()
             } catch (e: Exception) {
                 null
             }
             val cloudBadgeIds = badgesSnapshot?.documents?.mapNotNull { it.getString("id") } ?: emptyList()
+
+            // Fetch photos subcollection
+            try {
+                val photosSnapshot = fs.collection("users").document(docId).collection("photos").get().await()
+                photosSnapshot?.documents?.forEach { doc ->
+                    val photoId = doc.getString("id") ?: doc.id
+                    val stopId = doc.getString("stopId") ?: ""
+                    val stopName = doc.getString("stopName") ?: "Hẻm Landmark"
+                    val questId = doc.getString("questId") ?: ""
+                    val questTitle = doc.getString("questTitle") ?: ""
+                    val photoBase64 = doc.getString("photoBase64") ?: ""
+                    val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
+                    val userEmail = doc.getString("userEmail") ?: ""
+
+                    if (photoBase64.isNotEmpty() && passportPhotoDao != null) {
+                        passportPhotoDao.insertPassportPhoto(
+                            PassportPhotoEntity(
+                                id = photoId,
+                                stopId = stopId,
+                                stopName = stopName,
+                                questId = questId,
+                                questTitle = questTitle,
+                                photoBase64 = photoBase64,
+                                timestamp = timestamp,
+                                userEmail = userEmail,
+                                syncedToFirebase = true
+                            )
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("AuthManager", "Failed to fetch passport photos from Firestore", e)
+            }
 
             if (snapshot.exists()) {
                 val totalSteps = (snapshot.getLong("totalSteps") ?: 4250L).toInt()
@@ -576,7 +682,7 @@ class AuthManager(
                 )
 
                 userStatsDao?.insertOrUpdate(remoteStats)
-                Log.d("AuthManager", "Successfully fetched user stats and ${cloudBadgeIds.size} badges from Firestore for uid: $uid")
+                Log.d("AuthManager", "Successfully fetched user stats and ${cloudBadgeIds.size} badges from Firestore for docId: $docId")
                 Result.success(remoteStats)
             } else {
                 // If not exist on cloud yet, upload current local stats
@@ -585,22 +691,24 @@ class AuthManager(
                 Result.success(localStats)
             }
         } catch (e: Exception) {
-            Log.w("AuthManager", "Failed to fetch stats from Firestore for $uid", e)
+            Log.w("AuthManager", "Failed to fetch stats from Firestore for $docId", e)
             Result.failure(e)
         }
     }
 
     /**
-     * Save / Sync user profile in Firestore
+     * Save / Sync user profile in Firestore under users/{user_email_or_uid}
      */
     suspend fun syncUserProfile(user: FirebaseUser): UserProfileData {
         val isGoogle = user.providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }
         val isEmail = user.providerData.any { it.providerId == "password" }
+        val userEmail = user.email ?: ""
+        val docId = getUserDocId(user.uid, userEmail)
         
         val profile = UserProfileData(
             uid = user.uid,
             displayName = user.displayName ?: if (isGoogle) "Google Explorer" else "Saigon Walker",
-            email = user.email ?: "",
+            email = userEmail,
             photoUrl = user.photoUrl?.toString(),
             isGoogleLinked = isGoogle,
             isEmailLinked = isEmail
@@ -609,14 +717,15 @@ class AuthManager(
         val fs = firestore
         if (fs != null) {
             try {
-                val docRef = fs.collection("users").document(user.uid)
+                val docRef = fs.collection("users").document(docId)
                 val snapshot = docRef.get().await()
                 if (snapshot.exists()) {
                     val data = snapshot.toObject(UserProfileData::class.java)
                     if (data != null) {
                         val merged = data.copy(
+                            uid = user.uid,
                             displayName = if (user.displayName.isNullOrBlank()) data.displayName else user.displayName!!,
-                            email = if (user.email.isNullOrBlank()) data.email else user.email!!,
+                            email = if (userEmail.isBlank()) data.email else userEmail,
                             photoUrl = user.photoUrl?.toString() ?: data.photoUrl,
                             isGoogleLinked = isGoogle || data.isGoogleLinked,
                             isEmailLinked = isEmail || data.isEmailLinked
@@ -628,7 +737,7 @@ class AuthManager(
                 }
                 docRef.set(profile, SetOptions.merge()).await()
             } catch (e: Exception) {
-                Log.w("AuthManager", "Firestore sync failed, using profile", e)
+                Log.w("AuthManager", "Firestore profile sync failed for $docId", e)
             }
         }
         syncUserData(user.uid)
@@ -638,17 +747,19 @@ class AuthManager(
     private suspend fun saveUserProfile(user: FirebaseUser, displayName: String) {
         val fs = firestore
         if (fs != null) {
+            val userEmail = user.email ?: ""
+            val docId = getUserDocId(user.uid, userEmail)
             try {
                 val profile = UserProfileData(
                     uid = user.uid,
                     displayName = displayName.ifBlank { "Saigon Walker" },
-                    email = user.email ?: "",
+                    email = userEmail,
                     isEmailLinked = true,
                     isGoogleLinked = false
                 )
-                fs.collection("users").document(user.uid).set(profile).await()
+                fs.collection("users").document(docId).set(profile, SetOptions.merge()).await()
             } catch (e: Exception) {
-                Log.w("AuthManager", "Failed to write user to firestore", e)
+                Log.w("AuthManager", "Failed to write user profile to firestore for $docId", e)
             }
         }
     }

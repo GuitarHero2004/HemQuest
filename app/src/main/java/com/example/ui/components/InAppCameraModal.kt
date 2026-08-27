@@ -122,7 +122,7 @@ fun InAppCameraModal(
     isVerifying: Boolean = false,
     onDismiss: () -> Unit,
     onVerifyWithAi: (Bitmap) -> Unit,
-    onDirectConfirmCompletion: () -> Unit
+    onDirectConfirmCompletion: (Bitmap?) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -831,7 +831,7 @@ fun InAppCameraModal(
                             // Quick Direct Check-in Text Button
                             Spacer(modifier = Modifier.height(4.dp))
                             TextButton(
-                                onClick = onDirectConfirmCompletion,
+                                onClick = { onDirectConfirmCompletion(capturedBitmap) },
                                 modifier = Modifier
                                     .align(Alignment.CenterHorizontally)
                                     .testTag("camera_direct_confirm_button")
@@ -933,7 +933,7 @@ fun InAppCameraModal(
                                     }
 
                                     OutlinedButton(
-                                        onClick = onDirectConfirmCompletion,
+                                        onClick = { onDirectConfirmCompletion(capturedBitmap) },
                                         shape = RoundedCornerShape(12.dp),
                                         border = BorderStroke(1.dp, GrabGreen.copy(alpha = 0.6f)),
                                         modifier = Modifier

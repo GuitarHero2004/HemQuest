@@ -122,6 +122,7 @@ fun ProfileScreen(
     val locationState by (userStatsViewModel?.locationState?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.example.ui.LiveLocationState()) })
     val syncState by (userStatsViewModel?.syncState?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.example.ui.FirestoreSyncState()) })
     val allQuests by (userStatsViewModel?.allQuestsFlow?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(emptyList<com.example.model.Quest>()) })
+    val passportPhotos by (userStatsViewModel?.passportPhotos?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(emptyList<com.example.data.PassportPhotoEntity>()) })
     val isAuthenticated = authUiState.userProfile != null
     val userProfile = authUiState.userProfile
 
@@ -752,7 +753,7 @@ fun ProfileScreen(
                     }
                 }
 
-                item { AlleyScrapbookSection(allQuests, currentLanguage) }
+                item { AlleyScrapbookSection(allQuests, currentLanguage, passportPhotos = passportPhotos) }
 
                 // Real-Time User Location & Live Session Walk Tracker Card
                 item {

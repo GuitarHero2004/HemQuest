@@ -1,7 +1,10 @@
 package com.example.ui.components
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,6 +22,7 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MilitaryTech
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Verified
@@ -31,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -42,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import com.example.data.PassportPhotoEntity
 import com.example.model.Quest
 import com.example.model.QuestStop
 import com.example.model.StopStatus
@@ -55,7 +61,8 @@ import com.example.util.l
 @Composable
 fun AlleyScrapbookSection(
     quests: List<Quest>,
-    currentLanguage: String
+    currentLanguage: String,
+    passportPhotos: List<PassportPhotoEntity> = emptyList()
 ) {
     val completedStops = remember(quests) {
         quests.flatMap { q -> q.stops.filter { it.status == StopStatus.COMPLETED } }
@@ -280,6 +287,101 @@ fun AlleyScrapbookSection(
                         onClick = { selectedStopForStampDialog = stop }
                     )
                 }
+            }
+        }
+
+        // Digital Passport Photo Gallery (Snapped Marker Photos)
+        if (passportPhotos.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(Color(0xFF10B981), Color(0xFF059669))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "📸", fontSize = 18.sp)
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = l(
+                                currentLanguage,
+                                "Bộ Sưu Tập Ảnh Passport",
+                                "Passport Photo Gallery",
+                                "护照相册",
+                                "パスポート写真ギャラリー",
+                                "여권 사진 갤러리"
+                            ),
+                            fontSize = 15.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Ink900
+                        )
+                        Text(
+                            text = l(
+                                currentLanguage,
+                                "Đã lưu & đồng bộ Firebase Firestore",
+                                "Stored & synced to Firebase Firestore",
+                                "已保存并同步至 Firebase",
+                                "Firebaseに同期済み",
+                                "Firebase와 동기화됨"
+                            ),
+                            fontSize = 11.sp,
+                            color = Ink600
+                        )
+                    }
+                }
+
+                Surface(
+                    color = Color(0xFF10B981).copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(100.dp)
+                ) {
+                    Text(
+                        text = "${passportPhotos.size} ${l(currentLanguage, "ảnh", "photos", "张", "枚", "장")}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF059669),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            var selectedPhotoForDialog by remember { mutableStateOf<PassportPhotoEntity?>(null) }
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(end = 16.dp)
+            ) {
+                items(passportPhotos) { photo ->
+                    PassportPhotoCard(
+                        photo = photo,
+                        currentLanguage = currentLanguage,
+                        onClick = { selectedPhotoForDialog = photo }
+                    )
+                }
+            }
+
+            selectedPhotoForDialog?.let { photo ->
+                PassportPhotoDetailDialog(
+                    photo = photo,
+                    currentLanguage = currentLanguage,
+                    onDismiss = { selectedPhotoForDialog = null }
+                )
             }
         }
     }
@@ -719,5 +821,277 @@ private fun getStampColors(category: String): Pair<Color, Color> {
             Pair(Color(0xFFDC2626), Color(0xFFFEE2E2)) // Heritage Crimson
         else -> 
             Pair(Color(0xFF2563EB), Color(0xFFDBEAFE)) // Royal Blue
+    }
+}
+
+@Composable
+fun PassportPhotoCard(
+    photo: PassportPhotoEntity,
+    currentLanguage: String,
+    onClick: () -> Unit
+) {
+    val bitmap = remember(photo.photoBase64) {
+        try {
+            val decodedBytes = Base64.decode(photo.photoBase64, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = PaperWhite),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier
+            .width(170.dp)
+            .height(230.dp)
+            .border(1.dp, Color(0xFFCBD5E1), RoundedCornerShape(18.dp))
+            .clickable { onClick() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(135.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF1F5F9)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = photo.stopName,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.PhotoCamera,
+                        contentDescription = null,
+                        tint = Ink600
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color.Black.copy(alpha = 0.65f),
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(6.dp)
+                ) {
+                    Text(
+                        text = "PASSPORT SNAP",
+                        fontSize = 8.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = photo.stopName,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.Bold,
+                color = Ink900,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            val dateStr = remember(photo.timestamp) {
+                val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+                sdf.format(java.util.Date(photo.timestamp))
+            }
+
+            Text(
+                text = dateStr,
+                fontSize = 10.sp,
+                color = Ink600,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (photo.userEmail.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = photo.userEmail,
+                    fontSize = 9.5.sp,
+                    color = ForestGreen,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PassportPhotoDetailDialog(
+    photo: PassportPhotoEntity,
+    currentLanguage: String,
+    onDismiss: () -> Unit
+) {
+    val bitmap = remember(photo.photoBase64) {
+        try {
+            val decodedBytes = Base64.decode(photo.photoBase64, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = PaperWhite),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = CircleShape,
+                            color = ForestGreen.copy(alpha = 0.12f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Verified,
+                                contentDescription = null,
+                                tint = ForestGreen,
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .padding(4.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = l(currentLanguage, "Ảnh Passport Đã Xác Nhận", "Verified Passport Photo", "已验证护照照片", "検証済みパスポート写真", "인증된 여권 사진"),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Ink900
+                        )
+                    }
+
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = Ink600)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(260.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (bitmap != null) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = photo.stopName,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.PhotoCamera,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = photo.stopName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Ink900,
+                    textAlign = TextAlign.Center
+                )
+
+                if (photo.questTitle.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "🗺️ ${photo.questTitle}",
+                        fontSize = 13.sp,
+                        color = Ink600,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                val dateStr = remember(photo.timestamp) {
+                    val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault())
+                    sdf.format(java.util.Date(photo.timestamp))
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Surface(
+                    color = Color(0xFFF1F5F9),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "📅 $dateStr",
+                            fontSize = 11.5.sp,
+                            color = Ink600,
+                            fontWeight = FontWeight.Medium
+                        )
+                        if (photo.userEmail.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "👤 ${photo.userEmail}",
+                                fontSize = 11.5.sp,
+                                color = ForestGreen,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = l(currentLanguage, "Đóng", "Close", "关闭", "閉じる", "닫기"),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
     }
 }

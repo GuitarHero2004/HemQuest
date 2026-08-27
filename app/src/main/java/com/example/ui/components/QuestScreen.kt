@@ -641,11 +641,29 @@ fun QuestScreen(
                 onVerifyWithAi = { bitmap ->
                     // Keep modal open so the loading state & scanning animation is shown to user
                     viewModel.verifyPhotoChallenge(bitmap)
+                    val currentQuest = uiState.currentQuest
+                    userStatsViewModel.savePassportPhoto(
+                        activeStop.id,
+                        activeStop.name,
+                        currentQuest?.id ?: "",
+                        currentQuest?.title ?: "",
+                        bitmap
+                    )
                 },
-                onDirectConfirmCompletion = {
+                onDirectConfirmCompletion = { bitmap ->
                     showCameraModal = false
                     viewModel.confirmStopCompletion()
                     userStatsViewModel.incrementCheckpoints()
+                    if (bitmap != null) {
+                        val currentQuest = uiState.currentQuest
+                        userStatsViewModel.savePassportPhoto(
+                            activeStop.id,
+                            activeStop.name,
+                            currentQuest?.id ?: "",
+                            currentQuest?.title ?: "",
+                            bitmap
+                        )
+                    }
                 }
             )
         }
