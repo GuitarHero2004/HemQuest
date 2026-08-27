@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 interface QuestDao {
     @Query("SELECT * FROM quests ORDER BY timestamp DESC")
     fun getAllQuests(): Flow<List<QuestEntity>>
+
+    @Query("SELECT * FROM quests ORDER BY timestamp DESC")
+    suspend fun getAllQuestsList(): List<QuestEntity>
     
     @Query("SELECT * FROM quests WHERE id = :id LIMIT 1")
     suspend fun getQuestById(id: String): QuestEntity?

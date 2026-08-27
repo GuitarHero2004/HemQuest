@@ -468,8 +468,8 @@ class AuthManager(
 
             // 2. Sync Completed Quests
             questDao?.let { dao ->
-                val quests = dao.getAllQuests().firstOrNull()
-                if (!quests.isNullOrEmpty()) {
+                val quests = dao.getAllQuestsList()
+                if (quests.isNotEmpty()) {
                     for (quest in quests) {
                         val questMap = hashMapOf<String, Any>(
                             "id" to quest.id,
@@ -572,6 +572,31 @@ class AuthManager(
             Log.d("AuthManager", "Saved cultural badge ${badge.id} for $docId to Firestore")
         } catch (e: Exception) {
             Log.w("AuthManager", "Failed to save badge ${badge.id} to Firestore", e)
+        }
+    }
+
+    /**
+     * Directly save a completed quest object to Firestore under users/{user_email_or_uid}/quests/{quest.id}
+     */
+    suspend fun saveQuestToFirestore(uid: String, quest: com.example.model.Quest) {
+        val fs = firestore ?: return
+        val docId = getUserDocId(uid)
+        try {
+            val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
+            val adapter = moshi.adapter(com.example.model.Quest::class.java)
+            val questJson = adapter.toJson(quest)
+            val questMap = hashMapOf<String, Any>(
+                "id" to quest.id,
+                "questJson" to questJson,
+                "timestamp" to System.currentTimeMillis()
+            )
+            fs.collection("users").document(docId)
+                .collection("quests").document(quest.id)
+                .set(questMap, SetOptions.merge())
+                .await()
+            Log.d("AuthManager", "Saved quest ${quest.id} for $docId to Firestore")
+        } catch (e: Exception) {
+            Log.w("AuthManager", "Failed to save quest ${quest.id} to Firestore", e)
         }
     }
 

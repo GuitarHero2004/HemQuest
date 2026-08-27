@@ -865,6 +865,10 @@ fun QuestScreen(
                 isVi = isVi,
                 currentLanguage = currentLanguage,
                 onSaveAndExit = {
+                    val currentQuest = uiState.currentQuest
+                    if (currentQuest != null) {
+                        userStatsViewModel.saveCompletedQuest(currentQuest)
+                    }
                     val dist = uiState.questDistanceMeters.takeIf { it > 0 } ?: 1200.0
                     val xp = if (dist > 2000) 250 else 150
                     userStatsViewModel.completeQuest(
@@ -880,6 +884,10 @@ fun QuestScreen(
                     }
                 },
                 onNewQuest = { 
+                    val currentQuest = uiState.currentQuest
+                    if (currentQuest != null) {
+                        userStatsViewModel.saveCompletedQuest(currentQuest)
+                    }
                     val dist = uiState.questDistanceMeters.takeIf { it > 0 } ?: 1200.0
                     val xp = if (dist > 2000) 250 else 150
                     userStatsViewModel.completeQuest(
@@ -915,11 +923,11 @@ fun QuestScreen(
                     androidx.compose.material3.Text(
                         text = l(
                             currentLanguage,
-                            "Bản Đồ Vị Trí Hiện Tại",
-                            "Current Location Map",
-                            "当前位置地图",
-                            "現在地マップ",
-                            "현재 위치 지도"
+                            "Bản Đồ Vị Trí Sài Gòn",
+                            "Saigon Map View",
+                            "西贡地图视图",
+                            "サイゴンマップビュー",
+                            "사이공 지도 보기"
                         ),
                         fontSize = 18.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
@@ -929,31 +937,50 @@ fun QuestScreen(
                     androidx.compose.material3.Text(
                         text = l(
                             currentLanguage,
-                            "Chưa chọn Quest! Hãy chọn một hành trình từ trang Khám Phá để hiển thị tuyến đường hẻm trên bản đồ.",
-                            "No Quest selected! Choose a quest from Discover to display the alleyway route on the map.",
-                            "未选择任务！请从探索页面选择一个任务以在地图上显示路线。",
-                            "クエストが未選択です！「発見」からクエストを選択してマップに路地裏ルートを表示してください。",
-                            "선택된 퀘스트가 없습니다! 탐색 페이지에서 퀘스트를 선택하여 골목 경로를 지도에 표시하세요."
+                            "Chưa có hành trình active. Bạn có thể mở lại Quest gần đây hoặc chọn một hành trình mới từ trang Khám Phá.",
+                            "No active quest. You can reload your last saved quest or explore new quests from Discover.",
+                            "没有活动任务。您可以重新加载上次保存的任务或从“探索”中选择新任务。",
+                            "アクティブなクエストがありません。保存した最新のクエストを再読み込みするか、「発見」から選択してください。",
+                            "활성 퀘스트가 없습니다. 최근 저장된 퀘스트를 다시 불러오거나 '탐색'에서 새 퀘스트를 선택하세요."
                         ),
                         fontSize = 13.sp,
                         color = com.example.ui.theme.Ink600,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                     androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(8.dp))
-                    androidx.compose.material3.Button(
-                        onClick = { onBack?.invoke() ?: viewModel.openQuestBuilder() },
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                            containerColor = com.example.ui.theme.GrabGreen
-                        ),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)
                     ) {
-                        androidx.compose.material3.Text(
-                            l(currentLanguage, "Khám Phá Danh Sách Quest", "Discover Quests", "探索任务列表", "クエスト一覧を見る", "퀘스트 목록 보기"),
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = androidx.compose.ui.graphics.Color.White
-                        )
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = { viewModel.loadLastSavedQuest() },
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, com.example.ui.theme.GrabGreen),
+                            modifier = Modifier.weight(1f).height(48.dp)
+                        ) {
+                            androidx.compose.material3.Text(
+                                l(currentLanguage, "Quest Gần Đây", "Recent Quest", "最近任务", "最近のクエスト", "최근 퀘스트"),
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = com.example.ui.theme.GrabGreen
+                            )
+                        }
+
+                        androidx.compose.material3.Button(
+                            onClick = { onBack?.invoke() ?: viewModel.openQuestBuilder() },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = com.example.ui.theme.GrabGreen
+                            ),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            modifier = Modifier.weight(1f).height(48.dp)
+                        ) {
+                            androidx.compose.material3.Text(
+                                l(currentLanguage, "Khám Phá Mới", "Explore Quests", "探索新任务", "新しい探索", "새 탐색"),
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = androidx.compose.ui.graphics.Color.White
+                            )
+                        }
                     }
                 }
             }

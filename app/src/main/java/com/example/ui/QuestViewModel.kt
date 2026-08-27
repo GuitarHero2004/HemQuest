@@ -13,6 +13,7 @@ import com.example.repository.OfflineQuestRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -355,7 +356,30 @@ class QuestViewModel(
         prefs.edit().putString("selected_language", lang).apply()
         val newRequest = _uiState.value.questRequest.copy(language = lang)
         _uiState.update { it.copy(questRequest = newRequest) }
-        generateNewQuest(newRequest)
+        if (_uiState.value.currentQuest != null) {
+            generateNewQuest(newRequest)
+        }
+    }
+
+    fun loadLastSavedQuest() {
+        viewModelScope.launch {
+            try {
+                val savedList = repository.getAllSavedQuests().firstOrNull()
+                val lastQuest = savedList?.firstOrNull()
+                if (lastQuest != null) {
+                    val firstStop = lastQuest.stops.firstOrNull()
+                    _uiState.update {
+                        it.copy(
+                            currentQuest = lastQuest,
+                            selectedStop = firstStop,
+                            activeStopIndex = 0
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // ignore
+            }
+        }
     }
 
     fun toggleGreenScoreDialog(show: Boolean) {

@@ -3,6 +3,7 @@ package com.example.ui
 import android.graphics.Bitmap
 import android.location.Location
 import android.util.Base64
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.auth.AuthManager
@@ -299,11 +300,31 @@ class UserStatsViewModel(
             val updatedBadgeString = existingBadges.joinToString(",")
             userStatsDao.updateUnlockedBadges(updatedBadgeString)
 
-            if (currentUid != null && authManager != null) {
+            val targetUid = currentUid ?: authManager?.currentUser?.uid
+            if (targetUid != null && authManager != null) {
                 culturalBadge?.let { badge ->
-                    authManager.saveBadgeToFirestore(currentUid, badge)
+                    authManager.saveBadgeToFirestore(targetUid, badge)
                 }
-                authManager.syncUserData(currentUid)
+                authManager.syncUserData(targetUid)
+            }
+        }
+    }
+
+    fun saveCompletedQuest(quest: com.example.model.Quest) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
+                val json = moshi.adapter(com.example.model.Quest::class.java).toJson(quest)
+                questDao?.insertQuest(com.example.data.QuestEntity(id = quest.id, questJson = json, timestamp = System.currentTimeMillis()))
+                
+                val targetUid = authManager?.currentUser?.uid
+                if (targetUid != null && authManager != null) {
+                    authManager.saveQuestToFirestore(targetUid, quest)
+                    authManager.syncUserData(targetUid)
+                }
+                Log.d("UserStatsViewModel", "Successfully saved completed quest ${quest.id} locally & to Firestore")
+            } catch (e: Exception) {
+                Log.e("UserStatsViewModel", "Failed to save completed quest", e)
             }
         }
     }
