@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [QuestEntity::class, UserStatsEntity::class, PassportPhotoEntity::class], version = 5, exportSchema = false)
+@Database(entities = [QuestEntity::class, UserStatsEntity::class, PassportPhotoEntity::class], version = 10, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun questDao(): QuestDao
     abstract fun userStatsDao(): UserStatsDao
@@ -20,8 +20,10 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "quest_database"
-                ).fallbackToDestructiveMigration().build()
+                    "quest_database_v10"
+                ).fallbackToDestructiveMigration(dropAllTables = true)
+                .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
+                .build()
                 INSTANCE = instance
                 instance
             }
