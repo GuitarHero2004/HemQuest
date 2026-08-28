@@ -550,8 +550,81 @@ class AuthManager(
                 }
                 Log.d("AuthManager", "Successfully synced ${photos.size} passport photos to Firestore for docId: $docId")
             }
+
+            // Seed/Sync public reference collections: public_quests & cultural_glossary
+            syncPublicLibraryToFirestore()
         } catch (e: Exception) {
             Log.w("AuthManager", "Failed to sync local data to Firestore for $docId", e)
+        }
+    }
+
+    /**
+     * Seed/Sync the curated mock quests and cultural glossary encyclopedia to top-level Firestore collections
+     */
+    suspend fun syncPublicLibraryToFirestore() {
+        val fs = firestore ?: return
+        try {
+            // Seed Cultural Glossary (Bách Khoa Hẻm)
+            val glossaryItems = com.example.repository.CulturalGlossaryRepository.items
+            for (item in glossaryItems) {
+                val itemMap = hashMapOf<String, Any>(
+                    "id" to item.id,
+                    "term" to item.term,
+                    "phonetic" to item.phonetic,
+                    "toneGuide" to item.toneGuide,
+                    "category" to item.category.name,
+                    "icon" to item.icon,
+                    "shortDefinitionVi" to item.shortDefinitionVi,
+                    "shortDefinitionEn" to item.shortDefinitionEn,
+                    "fullDescriptionVi" to item.fullDescriptionVi,
+                    "fullDescriptionEn" to item.fullDescriptionEn,
+                    "whyItMattersVi" to item.whyItMattersVi,
+                    "whyItMattersEn" to item.whyItMattersEn,
+                    "triviaVi" to item.triviaVi,
+                    "triviaEn" to item.triviaEn,
+                    "exampleLocationsVi" to item.exampleLocationsVi,
+                    "exampleLocationsEn" to item.exampleLocationsEn,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+                fs.collection("cultural_glossary").document(item.id)
+                    .set(itemMap, SetOptions.merge())
+            }
+            Log.d("AuthManager", "Synced ${glossaryItems.size} cultural glossary items to Firestore 'cultural_glossary'")
+
+            // Seed Mock Quests
+            val mockRepo = com.example.repository.MockQuestRepository()
+            val sampleLocations = listOf("q11_crafts", "q5_food", "q3_french", "q_thanhda", "q3_bunker", "q10_bk", "q1_alleys")
+            val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
+            val adapter = moshi.adapter(com.example.model.Quest::class.java)
+
+            for (locKey in sampleLocations) {
+                val req = com.example.model.QuestRequest(
+                    startingLocationName = locKey,
+                    durationMinutes = 45,
+                    interests = listOf(locKey),
+                    language = "vi",
+                    freeTextNotes = locKey
+                )
+                val mockQuest = mockRepo.getFallbackQuest(req)
+                val questMap = hashMapOf<String, Any>(
+                    "id" to mockQuest.id,
+                    "title" to mockQuest.title,
+                    "theme" to mockQuest.theme,
+                    "summary" to mockQuest.summary,
+                    "estimatedDistanceMeters" to mockQuest.estimatedDistanceMetres,
+                    "estimatedMinutes" to mockQuest.estimatedMinutes,
+                    "greenScore" to mockQuest.greenScore.score,
+                    "stopsCount" to mockQuest.stops.size,
+                    "questJson" to adapter.toJson(mockQuest),
+                    "isCuratedMock" to true,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+                fs.collection("public_quests").document(mockQuest.id)
+                    .set(questMap, SetOptions.merge())
+            }
+            Log.d("AuthManager", "Synced ${sampleLocations.size} mock quests to Firestore 'public_quests'")
+        } catch (e: Exception) {
+            Log.w("AuthManager", "Failed to sync public library to Firestore", e)
         }
     }
 
