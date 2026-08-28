@@ -39,6 +39,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
@@ -51,12 +52,14 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -124,6 +127,7 @@ fun QuestScreen(
     val context = LocalContext.current
 
     var showCameraModal by remember { mutableStateOf(false) }
+    var showExitQuestDialog by remember { mutableStateOf(false) }
     val activeStop = uiState.selectedStop ?: uiState.currentQuest?.stops?.firstOrNull { it.status != StopStatus.COMPLETED }
     
     Box(modifier = modifier.fillMaxSize()) {
@@ -155,12 +159,151 @@ fun QuestScreen(
                 onToggleExpand = { viewModel.toggleSequenceHudExpanded() },
                 onExitQuest = {
                     viewModel.exitAndResetQuest()
-                    onBack?.invoke()
                 },
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 12.dp, start = 12.dp, end = 12.dp)
             )
+        }
+
+        // Free Roam Mode Floating Card when no quest is active
+        if (uiState.currentQuest == null) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = PaperWhite),
+                shape = RoundedCornerShape(22.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 84.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth()
+                    .testTag("free_roam_map_card")
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            color = ForestGreen.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .background(GrabGreen, shape = CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = l(currentLanguage, "CHẾ ĐỘ TỰ DO", "FREE ROAM MODE", "自由漫游模式", "自由探索モード", "자유 탐색 모드"),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ForestGreen
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = "📍 " + l(currentLanguage, "Hẻm Sài Gòn", "Saigon Alleys", "西贡胡同", "サイゴンの路地", "사이공 골목"),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Ink600
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = l(
+                            currentLanguage,
+                            "Bản Đồ Khám Phá Hẻm Phố",
+                            "Saigon Alleyway Map Explorer",
+                            "西贡胡同街区探索地图",
+                            "サイゴン路地裏マップ探索",
+                            "사이공 골목길 탐색 지도"
+                        ),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Ink900
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = l(
+                            currentLanguage,
+                            "Hiện không có quest đang chạy. Bạn có thể tự do dạo ngõ hẻm hoặc tạo một nhiệm vụ mới với AI.",
+                            "No active quest on map. Wander freely around city alleys or create a personalized AI quest.",
+                            "当前没有进行中的任务。您可以自由漫游街巷或使用 AI 生成新任务。",
+                            "アクティブなクエストはありません。路地裏を自由に散策するか、AIで新しいクエストを作成できます。",
+                            "진행 중인 퀘스트가 없습니다. 자유롭게 골목을 거닐거나 AI로 새 퀘스트를 만들어 보세요."
+                        ),
+                        fontSize = 12.5.sp,
+                        color = Ink600,
+                        lineHeight = 17.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { onBack?.invoke() },
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .weight(0.42f)
+                                .height(44.dp)
+                                .testTag("back_to_explore_list_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.List,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = Ink900
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = l(currentLanguage, "Khám phá", "Explore", "探索列表", "リスト", "목록"),
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Ink900
+                            )
+                        }
+
+                        Button(
+                            onClick = { viewModel.openQuestBuilder() },
+                            colors = ButtonDefaults.buttonColors(containerColor = GrabGreen),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .weight(0.58f)
+                                .height(44.dp)
+                                .testTag("open_builder_from_map_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = l(currentLanguage, "Tạo Quest AI", "Create Quest", "创建任务", "クエスト作成", "퀘스트 생성"),
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Floating Bottom Active Checkpoint Card (above bottom nav bar)
@@ -237,31 +380,63 @@ fun QuestScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Button(
-                            onClick = {
-                                viewModel.startJourney()
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = GrabGreen),
-                            shape = RoundedCornerShape(14.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(46.dp)
-                                .testTag("start_journey_button")
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.exitAndResetQuest()
+                                },
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = Color(0xFFEF4444)
+                                ),
+                                border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.5f)),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier
+                                    .weight(0.38f)
+                                    .height(46.dp)
+                                    .testTag("cancel_quest_preview_button")
+                            ) {
                                 Icon(
-                                    imageVector = Icons.Default.Navigation,
+                                    imageVector = Icons.Default.Close,
                                     contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = l(currentLanguage, "Bắt đầu hành trình", "Start Journey", "开始旅程", "旅を始める", "여정 시작"),
+                                    text = l(currentLanguage, "Thoát", "Exit", "退出", "終了", "나가기"),
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 13.5.sp,
-                                    color = Color.White
+                                    fontSize = 13.sp
                                 )
+                            }
+
+                            Button(
+                                onClick = {
+                                    viewModel.startJourney()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = GrabGreen),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier
+                                    .weight(0.62f)
+                                    .height(46.dp)
+                                    .testTag("start_journey_button")
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Navigation,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = l(currentLanguage, "Bắt đầu", "Start", "开始旅程", "開始", "시작"),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.5.sp,
+                                        color = Color.White
+                                    )
+                                }
                             }
                         }
                     }
@@ -377,7 +552,7 @@ fun QuestScreen(
                                     modifier = Modifier
                                         .height(30.dp)
                                         .testTag("view_stop_detail_button")
-                                ) {
+                                 ) {
                                     Row(
                                         modifier = Modifier.padding(horizontal = 9.dp),
                                         verticalAlignment = Alignment.CenterVertically
@@ -394,6 +569,36 @@ fun QuestScreen(
                                             fontSize = 11.5.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = ForestGreen
+                                        )
+                                    }
+                                }
+
+                                // Exit Quest Button
+                                Surface(
+                                    onClick = { showExitQuestDialog = true },
+                                    color = Color(0xFFFEF2F2),
+                                    shape = RoundedCornerShape(100.dp),
+                                    border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.35f)),
+                                    modifier = Modifier
+                                        .height(30.dp)
+                                        .testTag("exit_quest_card_button")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Exit Quest",
+                                            tint = Color(0xFFEF4444),
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        Text(
+                                            text = l(currentLanguage, "Thoát", "Exit", "退出", "終了", "나가기"),
+                                            fontSize = 11.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFEF4444)
                                         )
                                     }
                                 }
@@ -787,6 +992,79 @@ fun QuestScreen(
                     viewModel.closeCheckpointDetail()
                     onOpenGlossary?.invoke(termId)
                 }
+            )
+        }
+
+        if (showExitQuestDialog) {
+            AlertDialog(
+                onDismissRequest = { showExitQuestDialog = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier.size(28.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = l(
+                            currentLanguage,
+                            "Dừng hành trình này?",
+                            "Exit Active Quest?",
+                            "退出当前任务？",
+                            "探索を終了しますか？",
+                            "퀘스트를 종료하시겠습니까?"
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp,
+                        color = Ink900
+                    )
+                },
+                text = {
+                    Text(
+                        text = l(
+                            currentLanguage,
+                            "Bạn có muốn thoát khỏi nhiệm vụ này không? Tiến trình các chặng đã hoàn thành vẫn sẽ được lưu vào lịch sử khám phá của bạn.",
+                            "Do you want to exit this quest? Completed checkpoints and XP will still be saved to your travel history.",
+                            "您确定要退出此任务吗？已完成的打卡点与XP将保留在您的探索历史中。",
+                            "このクエストを終了しますか？完了したスポットとXPは旅行履歴に保存されます。",
+                            "이 퀘스트를 종료하시겠습니까? 이미 완료한 체크포인트와 XP는 여행 기록에 저장됩니다."
+                        ),
+                        fontSize = 13.5.sp,
+                        color = Ink600,
+                        lineHeight = 19.sp
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showExitQuestDialog = false
+                            viewModel.exitAndResetQuest()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = l(currentLanguage, "Thoát Hành Trình", "Exit Quest", "确认退出", "終了する", "퀘스트 종료"),
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        onClick = { showExitQuestDialog = false },
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = l(currentLanguage, "Tiếp tục khám phá", "Keep Exploring", "继续探索", "探索を続ける", "계속 탐험"),
+                            color = Ink900
+                        )
+                    }
+                },
+                containerColor = PaperWhite,
+                shape = RoundedCornerShape(20.dp)
             )
         }
 

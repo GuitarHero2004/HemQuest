@@ -113,6 +113,7 @@ fun ProfileScreen(
     authViewModel: AuthViewModel? = null,
     userStatsViewModel: com.example.ui.UserStatsViewModel? = null,
     onResetAllUserData: (() -> Unit)? = null,
+    onSignOut: (() -> Unit)? = null,
     onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -1639,6 +1640,7 @@ fun ProfileScreen(
                     onClick = {
                         showLogoutConfirmation = false
                         authViewModel?.signOut()
+                        onSignOut?.invoke()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
                     shape = RoundedCornerShape(14.dp)
@@ -1742,6 +1744,7 @@ fun ProfileScreen(
                             ).show()
                         }
                         onResetAllUserData?.invoke()
+                        onSignOut?.invoke()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
                     shape = RoundedCornerShape(14.dp)

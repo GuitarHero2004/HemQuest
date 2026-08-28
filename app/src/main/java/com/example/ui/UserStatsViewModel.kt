@@ -132,6 +132,24 @@ class UserStatsViewModel(
     }
 
     /**
+     * Clear active in-memory session states during Sign Out (without deleting cloud/account data).
+     * Ensures clean slate for next account login without state crossover.
+     */
+    fun clearSessionOnSignOut() {
+        previousLocation = null
+        _locationState.update { LiveLocationState() }
+        _syncState.update { FirestoreSyncState(isSyncing = false, isSynced = false) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                userStatsDao.deleteAllUserStats()
+                userStatsDao.insertOrUpdate(UserStatsEntity(id = 1))
+            } catch (e: Exception) {
+                Log.w("UserStatsViewModel", "Failed to reset local session table", e)
+            }
+        }
+    }
+
+    /**
      * Process real-time location ping from GPS since app opened
      */
     fun onLocationUpdate(newLocation: Location?) {

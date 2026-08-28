@@ -468,6 +468,14 @@ fun NavigationGraph(
                 onResetAllUserData = {
                     viewModel.exitAndResetQuest()
                 },
+                onSignOut = {
+                    viewModel.exitAndResetQuest()
+                    userStatsViewModel.clearSessionOnSignOut()
+                    navController.navigate("splash") {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
                 onBack = null
             )
         }

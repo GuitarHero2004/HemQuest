@@ -34,7 +34,7 @@ class GeminiApiService {
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     suspend fun generateQuest(apiKey: String, questRequest: QuestRequest): Quest = withContext(Dispatchers.IO) {
-        val modelsToTry = listOf("gemini-3.5-flash", "gemini-flash-latest")
+        val modelsToTry = listOf("gemini-3.5-flash", "gemini-3.1-pro-preview", "gemini-flash-latest")
         var lastException: Exception? = null
 
         val systemPrompt = """
