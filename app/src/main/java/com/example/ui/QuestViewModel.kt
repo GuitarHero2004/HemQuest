@@ -113,9 +113,10 @@ class QuestViewModel(
     private var generateJob: kotlinx.coroutines.Job? = null
 
     init {
-        // Asynchronously pull curated heritage paths from Firestore 'mock_quests' to keep local cache synchronized
+        // Ensure initial 'mock_quests' are seeded on Firestore if empty, then pull to local cache
         viewModelScope.launch {
             try {
+                com.example.repository.MockQuestSeeder.seedIfNeeded()
                 repository.pullAndCacheMockQuestsFromFirestore()
             } catch (e: Exception) {
                 android.util.Log.d("QuestViewModel", "Initial Firestore mock quests sync skipped: ${e.message}")

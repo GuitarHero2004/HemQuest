@@ -124,18 +124,38 @@ class MainActivity : ComponentActivity() {
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                         permissionsToRequest.add(android.Manifest.permission.ACTIVITY_RECOGNITION)
                     }
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
                     permissionLauncher.launch(permissionsToRequest.toTypedArray())
 
-                    // Real-time device hardware step counter & accelerometer motion sensor
+                    // Start background/foreground PedometerService for continuous tracking
+                    try {
+                        com.example.service.PedometerService.startService(context)
+                    } catch (e: Exception) {
+                        // Fallback handling
+                    }
+
+                    // Observe real-time footsteps, calories, and CO2 emissions from PedometerService
+                    launch {
+                        var lastRecordedSteps = 0
+                        com.example.service.PedometerService.pedometerState.collect { pedometerData ->
+                            val currentSteps = pedometerData.liveSteps
+                            if (currentSteps > lastRecordedSteps) {
+                                val delta = currentSteps - lastRecordedSteps
+                                lastRecordedSteps = currentSteps
+                                viewModel.onStepDetected(delta)
+                                userStatsViewModel.onStepDetected(delta)
+                            }
+                        }
+                    }
+
+                    // Seed initial curated mock quests (e.g. Bách Khoa Hẻm, Thanh Đa) to Firestore if empty
                     launch {
                         try {
-                            val stepTracker = com.example.util.StepSensorTracker(context)
-                            stepTracker.getStepFlow().collect { stepDelta ->
-                                viewModel.onStepDetected(stepDelta)
-                                userStatsViewModel.onStepDetected(stepDelta)
-                            }
+                            com.example.repository.MockQuestSeeder.seedIfNeeded()
                         } catch (e: Exception) {
-                            // Step sensor fallback
+                            // Offline or permissions handling
                         }
                     }
 
