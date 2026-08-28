@@ -217,30 +217,30 @@ Historical or cultural facts should be grounded in reviewed data wherever possib
 │                     HẺMQUEST ANDROID APP                    │
 │                                                             │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │            Jetpack Compose + Material 3              │  │
+│  │            Jetpack Compose + Material 3               │  │
 │  │                                                       │  │
-│  │ Home • Quest • Bách Khoa • Badges • Profile/Passport│  │
+│  │ Home • Quest • Bách Khoa • Badges • Profile/Passport  │  │
 │  └──────────────────────────┬────────────────────────────┘  │
 │                             │                               │
 │                  StateFlow / Coroutines                     │
 │                             │                               │
 │  ┌──────────────────────────▼────────────────────────────┐  │
-│  │               MVVM Presentation Layer               │  │
-│  │                                                      │  │
-│  │ QuestViewModel • UserStatsViewModel • AuthViewModel │  │
+│  │               MVVM Presentation Layer                 │  │
+│  │                                                       │  │
+│  │ QuestViewModel • UserStatsViewModel • AuthViewModel   │  │
 │  └──────────────────────────┬────────────────────────────┘  │
 │                             │                               │
 │  ┌──────────────────────────▼────────────────────────────┐  │
-│  │              Repositories / Data Layer              │  │
-│  └───────────────┬───────────────────────┬──────────────┘  │
-│                  │                       │                 │
-│          ┌───────▼────────┐      ┌──────▼───────────┐     │
-│          │ Local Storage  │      │ External Services│     │
-│          │                │      │                  │     │
-│          │ Room Database  │      │ Gemini API       │     │
-│          │ Local progress │      │ Firebase         │     │
-│          └────────────────┘      │ Google Sign-In   │     │
-│                                  └──────────────────┘     │
+│  │              Repositories / Data Layer                │  │
+│  └───────────────┬───────────────────────┬────────────── ┘  │
+│                  │                       │                  │
+│          ┌───────▼────────┐      ┌──────▼───────────┐       │
+│          │ Local Storage  │      │ External Services│       │
+│          │                │      │                  │       │
+│          │ Room Database  │      │ Gemini API       │       │
+│          │ Local progress │      │ Firebase         │       │
+│          └────────────────┘      │ Google Sign-In   │       │
+│                                  └──────────────────┘       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
