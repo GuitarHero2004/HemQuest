@@ -2,158 +2,631 @@
 
 > **Every alley has a story. Turn every step into a quest.**
 
-**HẻmQuest** is a gamified urban exploration and cultural heritage mobile app for Android that transforms overlooked neighbourhoods, historic alleys (hẻm), craft workshops, and local street stories into interactive walking experiences.
+**HẻmQuest** is a gamified urban exploration and cultural heritage Android app that transforms overlooked neighbourhoods, historic alleys (*hẻm*), craft communities, and local stories into interactive walking experiences.
 
-By combining **Google Gemini Multimodal AI, location intelligence, gamification, cultural storytelling, and active green mobility**, HẻmQuest helps users discover local heritage, explore cities on foot, support neighbourhood micro-economies, and preserve living urban stories.
+By combining **Google Gemini Multimodal AI, location-aware exploration, gamification, cultural storytelling, and active mobility**, HẻmQuest helps users discover local heritage, explore cities on foot, and preserve living urban stories.
 
 ---
 
 ## 🌆 The Idea & Motivation
 
-Ho Chi Minh City is famous for major tourist destinations such as Nguyễn Huệ Walking Street, Bến Thành Market, and landmark monuments. However, the true cultural soul and historical memory of the city live inside its **hẻm — the labyrinthine alleys and vibrant residential enclaves**.
+Ho Chi Minh City is famous for major destinations such as Nguyễn Huệ Walking Street and Bến Thành Market. But much of the city's everyday cultural identity lives deeper inside its **hẻm** — dense networks of alleys, residential enclaves, workshops, family businesses, and community spaces.
 
-These hidden communities contain:
-- Traditional craft guilds (e.g., Phú Bình glass lantern makers, woodcarvers)
-- Multi-generational family-run eateries and 70-year-old sock-filter coffee shops (*Cà phê vợt*)
-- French colonial villas, mid-century modernist residences, and communal shrines (*Miếu, Đình*)
-- Living oral histories and community micro-heritage
+These neighbourhoods can contain:
 
-Yet discovering them independently is difficult for younger generations and international travellers due to fragmented information and lack of contextual guidance. **HẻmQuest turns the city into an interactive, playable cultural exploration map.**
+- Traditional craft communities and workshops
+- Multi-generational family-run eateries and local coffee culture
+- Historic architecture and communal religious spaces
+- Neighbourhood stories and micro-heritage
+- Places that are culturally meaningful but difficult to discover through conventional tourism apps
+
+For younger residents and international travellers, this information is often fragmented and lacks the context needed for meaningful exploration.
+
+**HẻmQuest turns the city into an interactive, playable cultural exploration map.**
 
 ---
 
 ## 🎯 Problem Statement
 
-1. **Overtourism & Centralized Footfall:** Visitors concentrate heavily in crowded downtown areas, leaving historic craft alleys and local family businesses without discovery channels.
-2. **Fragmented Cultural Knowledge:** Rich oral histories, architectural backstories, and traditional techniques are scattered across oral archives without a unified digital platform.
-3. **Passive Tourism vs. Active Engagement:** Traditional mapping tools offer simple *Search → Navigate → Arrive* without fostering deep cultural understanding or physical engagement.
-4. **Sedentary Urban Lifestyles:** City dwellers lack engaging incentives that make walking purposeful, rewarding, and environmentally conscious.
+HẻmQuest is designed around four connected challenges:
+
+1. **Concentrated tourism:** Visitors tend to gather around already-famous attractions, while smaller neighbourhoods and local communities receive less visibility.
+2. **Fragmented cultural knowledge:** Local history, architecture, craft traditions, and community stories are often scattered across different sources or remain offline.
+3. **Passive urban discovery:** Conventional mapping tools are excellent for *Search → Navigate → Arrive*, but they rarely encourage deeper interaction with the place itself.
+4. **Low motivation for active exploration:** Walking can be healthy and sustainable, but many users lack a reason to turn an ordinary walk into an engaging experience.
 
 ---
 
 ## 💡 The Solution: Gamified Urban Walking Quests
 
-Instead of passive point-to-point navigation, HẻmQuest empowers users through a cyclic exploration loop:
+Instead of passive point-to-point navigation, HẻmQuest creates an exploration loop:
 
-$$\text{Discover} \longrightarrow \text{Walk} \longrightarrow \text{Learn} \longrightarrow \text{Challenge} \longrightarrow \text{AI Verify} \longrightarrow \text{Collect}$$
+```text
+Discover
+   ↓
+Choose a Quest
+   ↓
+Walk to Checkpoints
+   ↓
+Learn the Story
+   ↓
+Complete a Challenge
+   ↓
+Verify with AI
+   ↓
+Earn XP & Green Points
+   ↓
+Collect the Memory
+```
 
-Each Quest guides users through curated checkpoints featuring:
-- 📍 **Smart Proximity & Nearby Routing:** Prioritizes accessible quests within comfortable walking range ($< 1.5\text{ km}$), reserving distant or regional routes for explicit mock/explore selections.
-- 🎙️ **Voice & Speech-to-Text AI Prompting:** Allows users to speak their desired walking mood, duration, or cultural interest to synthesize on-demand custom itineraries.
-- 📷 **Gemini Multimodal AI Photo Verification:** Live vision analysis evaluating on-site checkpoint photos against cultural and architectural criteria before granting completion stamps.
-- 📚 **Bách Khoa Hẻm (Cultural Encyclopedia):** Offline-accessible digital knowledge archive documenting terminology, heritage sites, and craft lore.
-- 🌱 **Green Points & XP Progression:** Rewards sustainable active walking (carbon-reduction metrics) and unlocks badges and physical vouchers.
-- 🛂 **Digital Explorer Passport:** An immutable digital passport stamping each completed alley milestone with captured photography and Firestore cloud sync.
+Each Quest guides users through a set of culturally themed checkpoints with:
+
+- 📍 **Location-aware exploration**
+- 🗺️ **Quest routes and checkpoint progression**
+- 📷 **Gemini Multimodal photo verification**
+- 📚 **Bách Khoa Hẻm cultural knowledge**
+- 🌱 **Green Points and XP**
+- 🏅 **Badges and progression**
+- 🛂 **Digital Explorer Passport**
+- ☁️ **Firebase-backed account and cloud data**
 
 ---
 
-## ✨ Core Features & Technical Highlights
+## ✅ Current Product Capabilities
 
-### 1. 🧭 Dynamic Quest Discovery & Nearby Proximity Filter
-- **Walkable Distance Enforcement:** Automatically ranks and presents quests relative to the user's live coordinates. Distant historical journeys ($> 3\text{ km}$) are neatly partitioned into curated exploration catalog modes to prevent unrealistic walking journeys.
-- **Categorical Themes:** Culinary (*Ẩm thực hẻm*), Heritage Architecture (*Kiến trúc xưa*), Historical Sites (*Di tích lịch sử*), Craft Guilds (*Làng nghề thủ công*), and Urban Greenery (*Hẻm xanh*).
+The current prototype focuses on the core end-to-end exploration experience.
 
-### 2. 🎙️ Natural Voice & AI-Assisted Quest Synthesis
-- **Speech-to-Text Input:** Users can tap the microphone icon and speak prompt instructions (e.g., *"I want a 30-minute quiet architectural walk with iced coffee near District 3"*).
-- **Gemini Engine Integration:** Translates voice and natural language prompts into a structured multi-stop JSON quest with coordinates, checkpoints, cultural summaries, and photo challenges.
+### 1. 🧭 Quest Discovery
 
-### 3. 📷 Multimodal AI Vision Verification
-- Prevents artificial check-in exploitation. When a user reaches a checkpoint (e.g., *"Photograph the hand-assembled wireframe of a Phú Bình lantern"*), the camera captures the subject and sends it to Gemini Multimodal Vision API.
-- The model validates the scene's semantic relevance, provides instant educational commentary, and signs off on the checkpoint.
+Users can browse urban quests by category, including themes such as:
 
-### 4. 📚 Bách Khoa Hẻm (Saigon Alley Encyclopedia)
-- A searchable, offline-first compendium of cultural terms, historical timeline entries, architectural terminology (Indochine, Art Deco, Modernist tube houses), and local gastronomy guides.
-- Multilingual accessibility supporting Vietnamese, English, Chinese, Japanese, and Korean.
+- 🍜 *Ẩm thực hẻm* — local food
+- 🏛️ *Kiến trúc xưa* — heritage architecture
+- 📜 *Di tích lịch sử* — historical sites
+- 🏮 *Làng nghề thủ công* — traditional crafts
+- 🌿 *Hẻm xanh* — green urban exploration
 
-### 5. 🛂 Digital Explorer Passport & Firestore Cloud Sync
-- Every verified photo and completed quest is committed locally to **Room Database** and seamlessly mirrored to **Firebase Cloud Firestore** under `users/{uid}/...`.
-- Tracks streaks, badges, cumulative walking distance, and global leaderboards.
+Quest cards can surface information such as:
+
+- Theme
+- Estimated distance
+- Estimated duration
+- Number of checkpoints
+- Reward value
+- Quest progress
+
+The app can use location context to make nearby exploration more relevant to the user.
+
+---
+
+### 2. 🗺️ Quest Journey & Checkpoints
+
+When a user starts a Quest, HẻmQuest presents the journey as a sequence of real-world checkpoints.
+
+A checkpoint can contain:
+
+- Location information
+- Cultural context
+- A short challenge
+- Progress state
+- Photo verification action
+
+This transforms navigation from simply reaching a destination into completing a structured cultural experience.
+
+---
+
+### 3. 📷 Gemini Multimodal AI Verification
+
+A core technical feature of HẻmQuest is **AI-assisted checkpoint verification**.
+
+Instead of allowing users to complete a checkpoint with a simple button press, the app can ask for a context-specific photograph.
+
+Example challenge:
+
+> **Find and photograph a traditional handmade lantern.**
+
+The submitted image is analysed with **Google Gemini Multimodal AI** to evaluate whether it matches the checkpoint requirement.
+
+The verification flow is designed to:
+
+- Analyse the visual content of the photo
+- Compare it with the checkpoint challenge
+- Return an immediate verification result
+- Unlock Quest progress when the submission is accepted
+- Award XP / Green Points after successful completion
+
+> **Note:** AI verification supports the experience but should not be treated as proof of historical authenticity or absolute physical presence on its own.
+
+---
+
+### 4. 📚 Bách Khoa Hẻm — Saigon Alley Encyclopedia
+
+**Bách Khoa Hẻm** is the cultural knowledge layer of the app.
+
+It is designed to make local stories easier to discover before or during a Quest.
+
+Entries may include:
+
+- Heritage locations
+- Local terminology
+- Architectural styles
+- Traditional crafts
+- Historical context
+- Local gastronomy
+- Community stories
+
+The long-term purpose of Bách Khoa Hẻm is to become a **living digital archive of neighbourhood culture**, while the current prototype demonstrates how cultural content can be integrated directly into exploration.
+
+---
+
+### 5. 🛂 Digital Explorer Passport
+
+Completed exploration activities contribute to the user's personal **Hẻm Passport**.
+
+The Passport can preserve:
+
+- Completed Quests
+- Checkpoint memories
+- Quest completion history
+- Earned badges
+- XP and Green Point progression
+- Captured Quest photos where supported
+
+> **A passport for places that normally do not give you stamps.**
+
+---
+
+### 6. 🏅 Gamification
+
+HẻmQuest uses lightweight gamification to make continued exploration more rewarding.
+
+Current progression concepts include:
+
+- **XP** — overall exploration progress
+- **Green Points** — reward points associated with active exploration
+- **Badges** — milestones and themed achievements
+- **Streaks** — continued engagement over time
+
+The current prototype treats these primarily as **in-app progression mechanics**.
+
+---
+
+## 🧠 AI in HẻmQuest
+
+Google Gemini is used as the intelligent layer of the experience.
+
+### Current Focus
+
+- Multimodal image understanding
+- Checkpoint photo verification
+- AI-assisted Quest content / challenge generation where enabled
+- Contextual responses around Quest objectives
+
+### AI Design Principle
+
+HẻmQuest should use AI to **enhance curated cultural information**, not replace reliable source material.
+
+Historical or cultural facts should be grounded in reviewed data wherever possible rather than generated without supporting sources.
 
 ---
 
 ## 🏗️ Architecture & Tech Stack
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│                             HẺMQUEST CLIENT                              │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │                     Jetpack Compose UI (M3)                        │  │
-│  │   HomeScreen   QuestScreen   GlossaryScreen   Passport/Leaderboard │  │
-│  └─────────────────────────────────┬──────────────────────────────────┘  │
-│                                    │ StateFlow / Coroutines              │
-│  ┌─────────────────────────────────▼──────────────────────────────────┐  │
-│  │                       MVVM Presentation Layer                      │  │
-│  │     QuestViewModel     UserStatsViewModel     AuthViewModel        │  │
-│  └──────────────┬───────────────────────────────┬─────────────────────┘  │
-│                 │                               │                        │
-│  ┌──────────────▼─────────────┐   ┌─────────────▼─────────────────────┐  │
-│  │     Local Persistence      │   │       Services & Repositories     │  │
-│  │  • Room DB (v10 Schema)    │   │  • GeminiQuestRepository          │  │
-│  │  • DataStore / SharedPrefs │   │  • UserAuthRepository             │  │
-│  │  • CulturalGlossaryRepo    │   │  • SpeechRecognitionManager       │  │
-│  └────────────────────────────┘   └─────────────┬─────────────────────┘  │
-└─────────────────────────────────────────────────┼────────────────────────┘
-                                                  │
-                                                  ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                            CLOUD & AI SERVICES                           │
-│  ┌─────────────────────────┐  ┌────────────────┐  ┌───────────────────┐  │
-│  │ Google AI Studio        │  │ Firebase Cloud │  │ Google Credential │  │
-│  │ Gemini 2.5 Flash / API  │  │ Firestore DB   │  │ Manager (Sign-In) │  │
-│  └─────────────────────────┘  └────────────────┘  └───────────────────┘  │
-└──────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     HẺMQUEST ANDROID APP                    │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │            Jetpack Compose + Material 3              │  │
+│  │                                                       │  │
+│  │ Home • Quest • Bách Khoa • Badges • Profile/Passport│  │
+│  └──────────────────────────┬────────────────────────────┘  │
+│                             │                               │
+│                  StateFlow / Coroutines                     │
+│                             │                               │
+│  ┌──────────────────────────▼────────────────────────────┐  │
+│  │               MVVM Presentation Layer               │  │
+│  │                                                      │  │
+│  │ QuestViewModel • UserStatsViewModel • AuthViewModel │  │
+│  └──────────────────────────┬────────────────────────────┘  │
+│                             │                               │
+│  ┌──────────────────────────▼────────────────────────────┐  │
+│  │              Repositories / Data Layer              │  │
+│  └───────────────┬───────────────────────┬──────────────┘  │
+│                  │                       │                 │
+│          ┌───────▼────────┐      ┌──────▼───────────┐     │
+│          │ Local Storage  │      │ External Services│     │
+│          │                │      │                  │     │
+│          │ Room Database  │      │ Gemini API       │     │
+│          │ Local progress │      │ Firebase         │     │
+│          └────────────────┘      │ Google Sign-In   │     │
+│                                  └──────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-- **Runtime & UI:** 100% Kotlin, Jetpack Compose, Material Design 3, Edge-to-Edge with `WindowInsets.safeDrawing`.
-- **Concurrency & State:** Kotlin Coroutines, Flow, StateFlow, Lifecycle-aware view models.
-- **Local Storage (Offline-first):** Android Room SQLite database with automated migration fallback.
-- **Backend & Identity:** Firebase Firestore (Realtime NoSQL sync), Google Credential Manager (One-Tap Google Sign-In).
-- **Artificial Intelligence:** Google AI Studio REST / Gemini 2.5 Flash Multimodal Vision & Generation models.
+### Android
+
+- **Kotlin**
+- **Jetpack Compose**
+- **Material Design 3**
+- Edge-to-edge layouts
+- Lifecycle-aware state management
+
+### Architecture
+
+- **MVVM**
+- Clean separation between UI, application logic, and data sources
+- **Kotlin Coroutines**
+- **Flow / StateFlow**
+- Repository-based data access
+
+### Local Persistence
+
+- **Room Database**
+- Offline-first storage for Quest and progression data where supported
+
+### Cloud & Identity
+
+- **Firebase Cloud Firestore**
+- **Google Credential Manager / Google Sign-In**
+
+### Artificial Intelligence
+
+- **Google Gemini Multimodal API**
+- Used primarily for AI-assisted Quest interaction and image analysis
 
 ---
 
-## 🎬 Live Product Demonstration Flow (3–4 Mins)
+## 💾 Offline-First Approach
 
-| Timecode | Screen / Action | Presentation Script & Focus |
-| :--- | :--- | :--- |
-| **0:00 – 0:45** | **Home Screen Overview**<br>• View streak, XP, and Green Points.<br>• Language switcher (VI, EN, ZH, JA, KO).<br>• Proximity filter ($< 1.5\text{ km}$ vs. Mock catalog). | *"Welcome to HẻmQuest. The home screen presents the user's real-time exploration streak, XP, and Green Points earned through active walking. The UI intelligently surfaces quests located within immediate walking distance while allowing multi-language selection."* |
-| **0:45 – 1:15** | **Bách Khoa Hẻm (Encyclopedia)**<br>• Open **📚 Bách Khoa** from stats header.<br>• Browse architectural & culinary lore. | *"Before stepping out, users can consult Bách Khoa Hẻm—an offline digital encyclopedia cataloging hidden heritage stories, traditional crafting methods, and historical timelines."* |
-| **1:15 – 2:00** | **Voice Prompting & Quest Activation**<br>• Trigger voice or tap *Phú Bình Lantern Alley*.<br>• View route, distance, checkpoints, and calories. | *"Users can customize their journey via voice input or select a themed route like the Phú Bình Lantern Guild. The app displays checkpoint waypoints, walking duration, and estimated carbon offset."* |
-| **2:00 – 2:50** | **Camera & Gemini AI Vision Verification**<br>• Arrive at checkpoint & launch camera.<br>• Submit photo for Gemini Multimodal verification. | *"At each checkpoint, users encounter a cultural task. When submitting their photo, Gemini Multimodal Vision inspects the photo in real-time, verifying that the user found the authentic artifact before awarding XP and Green Points."* |
-| **2:50 – 3:30** | **Hẻm Passport & Firebase Firestore Sync**<br>• Open **Badges & Profile Passport**.<br>• Review photo collection and synced stats. | *"Upon completion, the stamped milestone and photo are immortalized in the user's Digital Passport and synchronized in real-time to Firebase Firestore."* |
-| **3:30 – 3:45** | **Closing Summary** | *"HẻmQuest bridges physical urban exercise, AI intelligence, and cultural preservation into every step. Thank you!"* |
+Urban exploration should not completely depend on stable connectivity.
+
+HẻmQuest therefore uses local persistence for data that can remain available on-device, such as:
+
+- Quest information
+- Checkpoints
+- Cultural content
+- User progress
+- Cached application state
+
+Cloud-connected functionality can synchronise when connectivity is available.
 
 ---
 
-## 🛠️ Getting Started & Setup
+## ☁️ Firebase Integration
+
+Firebase supports the cloud-connected parts of HẻmQuest.
+
+Depending on the active build and configuration, Firestore can be used for:
+
+- User profile data
+- Quest progress
+- Achievements
+- Passport data
+- Cross-device persistence
+
+Google sign-in provides account-based access without requiring a separate username/password system.
+
+---
+
+## 🔄 Example User Journey
+
+```text
+Open HẻmQuest
+      ↓
+Browse Quest Categories
+      ↓
+Select a Quest
+      ↓
+Read Cultural Context
+      ↓
+Start the Journey
+      ↓
+Reach a Checkpoint
+      ↓
+Read the Challenge
+      ↓
+Capture a Photo
+      ↓
+Gemini AI Verification
+      ↓
+Complete Checkpoint
+      ↓
+Earn XP / Green Points
+      ↓
+Update Passport & Progress
+```
+
+### Example
+
+**Phú Bình Lantern Quest**  
+*Traditional Crafts · Walking Exploration*
+
+**Challenge**
+
+> Find and photograph a traditional handmade lantern or a characteristic detail of its construction.
+
+**Verification**
+
+Gemini evaluates whether the image matches the visual objective of the checkpoint.
+
+**Reward**
+
+```text
++ XP
++ Green Points
++ Quest Progress
+```
+
+---
+
+## 🗺️ Exploration Themes
+
+HẻmQuest is designed around culturally distinctive urban experiences in Ho Chi Minh City.
+
+Potential and prototype Quest themes include:
+
+### 🏮 Phú Bình
+
+Traditional lantern-making and local craftsmanship.
+
+### 🏘️ Hào Sĩ Phường
+
+Historic Chợ Lớn alley architecture and Chinese-Vietnamese cultural heritage.
+
+### 🌆 Cư xá Đô Thành
+
+A distinctive residential neighbourhood offering a different perspective on central Saigon.
+
+### 🏯 Chợ Lớn
+
+Temples, food, architecture, markets, and Chinese-Vietnamese cultural heritage.
+
+These locations demonstrate how HẻmQuest can transform different types of neighbourhood culture into structured walking experiences.
+
+---
+
+## 🌱 Social & Environmental Impact
+
+HẻmQuest is designed around four broader impact areas.
+
+### 🌿 Greener Exploration
+
+Encourage users to discover nearby areas on foot instead of treating every urban journey as motorised transport.
+
+### 🏮 Cultural Discovery & Preservation
+
+Make neighbourhood histories, craft traditions, and cultural stories easier for younger users and travellers to encounter.
+
+### 🏪 Local Economic Discovery
+
+Create opportunities for users to discover:
+
+- Family-run shops
+- Independent cafés
+- Traditional workshops
+- Local markets
+- Craftspeople
+- Community businesses
+
+### ❤️ Active Urban Lifestyle
+
+Turn walking into a purposeful activity through challenges, progression, and exploration.
+
+---
+
+## 📊 Product Metrics We Want to Validate
+
+As HẻmQuest moves from prototype to user testing, useful metrics include:
+
+### Exploration
+
+- Quest completion rate
+- Walking distance
+- Checkpoints completed
+- Repeat Quest participation
+- Neighbourhoods explored
+
+### Cultural Engagement
+
+- Bách Khoa entries viewed
+- Cultural checkpoints completed
+- Heritage locations explored
+- Cultural content saved or revisited
+
+### Product Experience
+
+- AI verification success rate
+- Quest abandonment points
+- Average Quest duration
+- User retention
+- Most popular Quest categories
+
+---
+
+## 🚧 Current Scope vs. Future Ideas
+
+To keep the repository clear about what the current prototype demonstrates, the following ideas are **not presented as completed core features**.
+
+| Capability | Status |
+|---|---|
+| Quest browsing and categories | ✅ Current |
+| Checkpoint-based Quest journey | ✅ Current |
+| XP / Green Point progression | ✅ Current |
+| Bách Khoa Hẻm | ✅ Current |
+| Gemini multimodal photo verification | ✅ Current |
+| Hẻm Passport / progression view | ✅ Current |
+| Firebase-backed account/cloud data | ✅ Current / configuration-dependent |
+| AI-assisted Quest generation | 🟡 Experimental |
+| Full offline Quest experience | 🟡 In progress / build-dependent |
+| Speech-to-Text Quest prompting | 🔵 Planned |
+| Public global leaderboard | 🔵 Planned |
+| Physical Green Point vouchers | 🔵 Planned |
+| Partner reward marketplace | 🔵 Planned |
+| Verified carbon-offset calculation | 🔵 Planned |
+| Community-created Quest platform | 🔵 Planned |
+
+---
+
+## 🚀 Development Roadmap
+
+### Phase 1 — Core Exploration ✅
+
+- Quest browsing
+- Categories and discovery
+- Checkpoint journey
+- Gamification
+- Cultural content
+
+### Phase 2 — AI Experience ✅ / 🟡
+
+- Gemini multimodal image verification
+- AI-assisted Quest interaction
+- Improve verification reliability
+- Improve cultural grounding
+
+### Phase 3 — Persistence & Accounts ✅ / 🟡
+
+- Local Room persistence
+- Firebase user data
+- Google authentication
+- Cloud-connected progression
+
+### Phase 4 — Product Validation
+
+- Field-test selected HCMC Quest routes
+- Evaluate usability
+- Measure Quest completion
+- Test AI verification in real environments
+- Collect cultural-content feedback
+
+### Phase 5 — Expansion
+
+Potential future areas:
+
+- Community-authored Quests
+- Partner-created cultural trails
+- Local merchant rewards
+- More neighbourhoods
+- More cities
+- Richer multilingual support
+- Optional voice-based Quest prompting
+
+---
+
+## 🎬 Recommended Demo Flow
+
+A short live demonstration can follow this sequence:
+
+1. Open the **Home** screen
+2. Show **Streak, XP, and Green Points**
+3. Browse or filter Quest categories
+4. Open **Bách Khoa Hẻm**
+5. Select a Quest such as the **Phú Bình Lantern Quest**
+6. Start the Quest journey
+7. Open a checkpoint
+8. Capture or select a Quest photo
+9. Run **Gemini Multimodal verification**
+10. Complete the checkpoint
+11. Show updated XP / Green Points
+12. Open **Badges / Profile / Passport**
+
+The **AI photo verification** should be the main technical highlight of the demo.
+
+---
+
+## 🛠️ Getting Started
 
 ### Prerequisites
-- Android Studio Ladybug | 2024.2+ or Google AI Studio Android runtime
-- Android SDK API 34+ (Min SDK 26)
+
+- Android Studio
+- Android SDK compatible with the project
 - JDK 17+
-- A configured Google AI Studio Gemini API key or Firebase project credentials
+- Required Firebase configuration for cloud-enabled builds
+- A valid Gemini API configuration for AI-enabled features
 
-### Installation & Run
+### Clone the Repository
+
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/hemquest.git
-cd hemquest
+git clone <YOUR_REPOSITORY_URL>
+cd <YOUR_PROJECT_FOLDER>
+```
 
-# Open in Android Studio or compile via Gradle
+Open the project in **Android Studio** and allow Gradle to synchronise dependencies.
+
+You can also build from the command line:
+
+```bash
 ./gradlew assembleDebug
 ```
 
 ---
 
-## 🔐 Privacy & Security Best Practices
-- **API Keys & Secrets:** Kept out of version control and injected via `BuildConfig` / Secrets Gradle Plugin.
-- **Firestore Security Rules:** Restricted to authenticated owner accounts (`request.auth.uid == userId`).
-- **Location & Camera:** Strictly requested on-demand during active navigation and photo challenges in compliance with Android privacy policies.
+## 🔑 Configuration
+
+Some functionality depends on external Google services.
+
+Depending on the build, you may need to configure:
+
+- Gemini API credentials
+- Firebase
+- Google Sign-In
+- Maps / location services
+
+Do **not** commit private credentials to the repository.
+
+Use the project's local secret-management approach for API keys and environment-specific configuration.
+
+---
+
+## 🔐 Privacy & Security
+
+HẻmQuest may work with sensitive device capabilities such as location and camera access.
+
+Development should follow these principles:
+
+- Request location only when required for exploration features
+- Request camera access only when needed for checkpoint verification
+- Never commit API keys or private credentials
+- Restrict user-specific Firestore data through appropriate security rules
+- Avoid presenting AI-generated cultural information as verified fact without review
+
+Sensitive values should remain outside version control.
+
+---
+
+## 🔭 Future Vision
+
+HẻmQuest begins with Ho Chi Minh City, but the underlying concept is broader:
+
+> **A playable cultural layer for neighbourhood exploration.**
+
+Future versions could allow local historians, students, cultural organisations, tourism partners, and communities to create their own curated Quest experiences.
+
+The same model could eventually support hidden-neighbourhood exploration across other Vietnamese and Southeast Asian cities.
+
+For now, the priority is simpler:
+
+**build a strong, believable, and enjoyable HẻmQuest experience in Ho Chi Minh City first.**
 
 ---
 
 ## 🌏 Mission
 
-HẻmQuest doesn't need to build artificial attractions. They already thrive inside our neighborhood alleys, artisan workshops, and morning coffee tables. We build the digital and AI layer to help everyone discover and cherish them.
+HẻmQuest does not need to create artificial attractions.
+
+They already exist inside our neighbourhood alleys, workshops, markets, cafés, homes, and communities.
+
+What is missing is a digital layer that helps people **discover, understand, and remember them**.
+
+By combining **AI, gamification, active mobility, and cultural storytelling**, HẻmQuest aims to make every walk an opportunity to:
 
 **Explore Culture · Walk Greener · Support Local · Keep Stories Alive.**
+
+---
+
+# 🏮 HẻmQuest
+
+### Every alley has a story.
+
+**Go find it.**
