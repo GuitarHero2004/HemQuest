@@ -413,6 +413,7 @@ class UserStatsViewModel(
             _syncState.update { it.copy(isSyncing = true, errorMessage = null) }
             try {
                 authManager.syncUserData(uid)
+                authManager.syncPublicLibraryToFirestore()
                 _syncState.update {
                     it.copy(
                         isSyncing = false,
@@ -428,6 +429,25 @@ class UserStatsViewModel(
                         errorMessage = e.localizedMessage ?: "Sync error"
                     )
                 }
+            }
+        }
+    }
+
+    /**
+     * Explicitly seed the 'mock_quests' and 'cultural_glossary' collections into Firestore
+     */
+    fun seedMockQuestsAndGlossary(onComplete: ((Boolean) -> Unit)? = null) {
+        if (authManager == null) {
+            onComplete?.invoke(false)
+            return
+        }
+        viewModelScope.launch {
+            try {
+                authManager.syncPublicLibraryToFirestore()
+                onComplete?.invoke(true)
+            } catch (e: Exception) {
+                Log.e("UserStatsViewModel", "Failed to seed mock quests and glossary", e)
+                onComplete?.invoke(false)
             }
         }
     }

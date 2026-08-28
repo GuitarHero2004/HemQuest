@@ -591,7 +591,7 @@ class AuthManager(
             }
             Log.d("AuthManager", "Synced ${glossaryItems.size} cultural glossary items to Firestore 'cultural_glossary'")
 
-            // Seed Mock Quests
+            // Seed Mock Quests under 'mock_quests' (and mirror to 'public_quests')
             val mockRepo = com.example.repository.MockQuestRepository()
             val sampleLocations = listOf("q11_crafts", "q5_food", "q3_french", "q_thanhda", "q3_bunker", "q10_bk", "q1_alleys")
             val moshi = com.squareup.moshi.Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory()).build()
@@ -615,14 +615,32 @@ class AuthManager(
                     "estimatedMinutes" to mockQuest.estimatedMinutes,
                     "greenScore" to mockQuest.greenScore.score,
                     "stopsCount" to mockQuest.stops.size,
+                    "stops" to mockQuest.stops.map { stop ->
+                        hashMapOf<String, Any>(
+                            "id" to stop.id,
+                            "placeId" to stop.placeId,
+                            "name" to stop.name,
+                            "category" to stop.category,
+                            "latitude" to stop.latitude,
+                            "longitude" to stop.longitude,
+                            "whySelected" to stop.whySelected,
+                            "story" to stop.story,
+                            "factReference" to stop.factReference,
+                            "challengePrompt" to stop.challenge.prompt,
+                            "challengeType" to stop.challenge.type
+                        )
+                    },
                     "questJson" to adapter.toJson(mockQuest),
                     "isCuratedMock" to true,
                     "updatedAt" to System.currentTimeMillis()
                 )
+                // Seed to both 'mock_quests' and 'public_quests' collections
+                fs.collection("mock_quests").document(mockQuest.id)
+                    .set(questMap, SetOptions.merge())
                 fs.collection("public_quests").document(mockQuest.id)
                     .set(questMap, SetOptions.merge())
             }
-            Log.d("AuthManager", "Synced ${sampleLocations.size} mock quests to Firestore 'public_quests'")
+            Log.d("AuthManager", "Synced ${sampleLocations.size} mock quests to Firestore 'mock_quests' & 'public_quests'")
         } catch (e: Exception) {
             Log.w("AuthManager", "Failed to sync public library to Firestore", e)
         }

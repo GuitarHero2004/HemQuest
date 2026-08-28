@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.GpsFixed
@@ -1401,6 +1402,89 @@ fun ProfileScreen(
                                         checkedTrackColor = GrabGreen
                                     )
                                 )
+                            }
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 10.dp),
+                                color = Color.LightGray.copy(alpha = 0.2f)
+                            )
+
+                            // Seed / Re-initialize Mock Quests & Bách Khoa to Firestore
+                            var isSeedingToFirestore by remember { mutableStateOf(false) }
+                            var seedStatusMessage by remember { mutableStateOf<String?>(null) }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(enabled = !isSeedingToFirestore) {
+                                        isSeedingToFirestore = true
+                                        seedStatusMessage = null
+                                        userStatsViewModel?.seedMockQuestsAndGlossary { success ->
+                                            isSeedingToFirestore = false
+                                            seedStatusMessage = if (success) {
+                                                l(currentLanguage, "Đã khởi tạo 'mock_quests' & 'cultural_glossary' lên Firestore!", "Initialized 'mock_quests' & 'cultural_glossary' on Firestore!", "已成功在Firestore初始化mock_quests与cultural_glossary！", "Firestoreにmock_questsとcultural_glossaryを初期化しました！", "Firestore에 mock_quests 및 cultural_glossary 초기화 완료!")
+                                            } else {
+                                                l(currentLanguage, "Lỗi khởi tạo. Vui lòng kiểm tra mạng/Firestore.", "Failed to seed. Please check connection.", "初始化失败，请检查网络。", "初期化に失敗しました。", "초기화 실패. 네트워크를 확인하세요.")
+                                            }
+                                        }
+                                    }
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CloudUpload,
+                                        contentDescription = null,
+                                        tint = GrabGreen,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = l(
+                                                currentLanguage,
+                                                "Khởi tạo Mock Quests lên Firestore",
+                                                "Seed Mock Quests to Firestore",
+                                                "向Firestore写入Mock Quests",
+                                                "FirestoreにMock Questsを初期化",
+                                                "Firestore에 Mock Quests 시딩"
+                                            ),
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Ink900
+                                        )
+                                        Text(
+                                            text = seedStatusMessage ?: l(
+                                                currentLanguage,
+                                                "Tạo collection 'mock_quests' & 'cultural_glossary' trên Cloud",
+                                                "Create 'mock_quests' & 'cultural_glossary' collections on Cloud",
+                                                "在云端创建mock_quests和cultural_glossary集合",
+                                                "クラウド上にmock_questsとcultural_glossaryを作成",
+                                                "클라우드에 mock_quests 및 cultural_glossary 생성"
+                                            ),
+                                            fontSize = 11.sp,
+                                            color = if (seedStatusMessage != null) GrabGreen else Ink600
+                                        )
+                                    }
+                                }
+                                if (isSeedingToFirestore) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp,
+                                        color = GrabGreen
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                        contentDescription = null,
+                                        tint = Ink600.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
                             }
 
                             HorizontalDivider(
