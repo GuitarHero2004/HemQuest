@@ -48,6 +48,19 @@ class OfflineQuestRepository(
         }
     }
 
+    suspend fun pullAndCacheMockQuestsFromFirestore(): List<Quest> {
+        return try {
+            val quests = remoteRepository.fetchMockQuestsFromFirestore()
+            for (quest in quests) {
+                saveQuestLocally(quest)
+            }
+            quests
+        } catch (e: Exception) {
+            Log.w("OfflineQuestRepository", "Error syncing Firestore mock quests: ${e.message}", e)
+            emptyList()
+        }
+    }
+
     suspend fun getOrFetchQuest(request: QuestRequest): Quest {
         return try {
             val quest = remoteRepository.generateQuest(request)

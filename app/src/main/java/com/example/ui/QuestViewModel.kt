@@ -113,7 +113,24 @@ class QuestViewModel(
     private var generateJob: kotlinx.coroutines.Job? = null
 
     init {
-        // App starts clean on the Explore/Khám Phá view without forcing an auto-generated quest
+        // Asynchronously pull curated heritage paths from Firestore 'mock_quests' to keep local cache synchronized
+        viewModelScope.launch {
+            try {
+                repository.pullAndCacheMockQuestsFromFirestore()
+            } catch (e: Exception) {
+                android.util.Log.d("QuestViewModel", "Initial Firestore mock quests sync skipped: ${e.message}")
+            }
+        }
+    }
+
+    fun refreshCloudQuests() {
+        viewModelScope.launch {
+            try {
+                repository.pullAndCacheMockQuestsFromFirestore()
+            } catch (e: Exception) {
+                android.util.Log.w("QuestViewModel", "Failed to refresh cloud quests: ${e.message}")
+            }
+        }
     }
 
     private fun loadInitialQuest() {

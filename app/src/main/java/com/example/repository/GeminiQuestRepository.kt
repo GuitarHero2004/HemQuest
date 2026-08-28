@@ -8,11 +8,100 @@ import com.example.model.Quest
 import com.example.model.QuestRequest
 import com.example.model.VerificationStatus
 import com.example.network.GeminiApiService
+import com.google.firebase.firestore.FirebaseFirestore
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 
 class GeminiQuestRepository(
     private val apiService: GeminiApiService = GeminiApiService(),
     private val mockRepository: MockQuestRepository = MockQuestRepository()
 ) {
+    private val firestore: FirebaseFirestore? by lazy {
+        try { FirebaseFirestore.getInstance() } catch (e: Exception) { null }
+    }
+
+    private val moshi: Moshi by lazy {
+        Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    }
+
+    private val questAdapter by lazy {
+        moshi.adapter(Quest::class.java)
+    }
+
+    /**
+     * Pulls all curated heritage paths from the 'mock_quests' Firestore collection.
+     */
+    suspend fun fetchMockQuestsFromFirestore(): List<Quest> {
+        val fs = firestore ?: return emptyList()
+        return try {
+            withTimeoutOrNull(6000L) {
+                val snapshot = fs.collection("mock_quests").get().await()
+                if (snapshot.isEmpty) {
+                    val fallbackSnap = fs.collection("public_quests").get().await()
+                    parseQuestsFromSnapshot(fallbackSnap)
+                } else {
+                    parseQuestsFromSnapshot(snapshot)
+                }
+            } ?: emptyList()
+        } catch (e: Exception) {
+            Log.w("GeminiQuestRepository", "Unable to pull mock_quests from Firestore: ${e.message}", e)
+            emptyList()
+        }
+    }
+
+    private fun parseQuestsFromSnapshot(snapshot: com.google.firebase.firestore.QuerySnapshot): List<Quest> {
+        val quests = mutableListOf<Quest>()
+        for (doc in snapshot.documents) {
+            val jsonStr = doc.getString("questJson")
+            if (!jsonStr.isNullOrBlank()) {
+                try {
+                    val parsed = questAdapter.fromJson(jsonStr)
+                    if (parsed != null) {
+                        quests.add(parsed)
+                    }
+                } catch (e: Exception) {
+                    Log.e("GeminiQuestRepository", "Failed to deserialize quest ${doc.id}", e)
+                }
+            }
+        }
+        Log.d("GeminiQuestRepository", "Successfully pulled and instantiated ${quests.size} quests from Firestore 'mock_quests'")
+        return quests
+    }
+
+    /**
+     * Pull a single matching quest from Firestore 'mock_quests' collection based on request keywords
+     */
+    suspend fun fetchMatchingQuestFromFirestore(request: QuestRequest): Quest? {
+        val fs = firestore ?: return null
+        return try {
+            withTimeoutOrNull(4000L) {
+                val cloudQuests = fetchMockQuestsFromFirestore()
+                if (cloudQuests.isEmpty()) return@withTimeoutOrNull null
+
+                val loc = (request.startingLocationName + " " + request.freeTextNotes + " " + request.interests.joinToString(" ")).lowercase()
+                val match = cloudQuests.firstOrNull { q ->
+                    val qText = (q.id + " " + q.title + " " + q.theme + " " + q.summary).lowercase()
+                    when {
+                        (loc.contains("thanh đa") || loc.contains("thanh da")) && (qText.contains("thanh đa") || qText.contains("thanhda")) -> true
+                        (loc.contains("lồng đèn") || loc.contains("phú bình") || loc.contains("11")) && (qText.contains("phú bình") || qText.contains("crafts")) -> true
+                        (loc.contains("bách khoa") || loc.contains("hcmut") || loc.contains("q10")) && (qText.contains("bách khoa") || qText.contains("bk")) -> true
+                        (loc.contains("french") || loc.contains("biệt thự") || loc.contains("q3")) && (qText.contains("pháp") || qText.contains("french")) -> true
+                        (loc.contains("chợ lớn") || loc.contains("sủi cảo") || loc.contains("q5")) && (qText.contains("chợ lớn") || qText.contains("food")) -> true
+                        (loc.contains("biệt động") || loc.contains("bunker") || loc.contains("đỗ phủ")) && (qText.contains("biệt động") || qText.contains("bunker")) -> true
+                        (loc.contains("pasteur") || loc.contains("tân định") || loc.contains("q1")) && (qText.contains("pasteur") || qText.contains("alleys")) -> true
+                        else -> false
+                    }
+                } ?: cloudQuests.randomOrNull()
+
+                match
+            }
+        } catch (e: Exception) {
+            Log.w("GeminiQuestRepository", "Firestore matching quest query failed: ${e.message}")
+            null
+        }
+    }
 
     suspend fun generateQuest(request: QuestRequest): Quest {
         val apiKey = try {
@@ -22,7 +111,13 @@ class GeminiQuestRepository(
         }
 
         if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY" || apiKey.contains("YOUR_")) {
-            Log.w("HẻmQuest", "Gemini API key not configured or placeholder used. Using curated fallback quest.")
+            Log.w("HẻmQuest", "Gemini API key not configured. Pulling from Firestore 'mock_quests'...")
+            val firestoreQuest = fetchMatchingQuestFromFirestore(request)
+            if (firestoreQuest != null) {
+                Log.d("HẻmQuest", "Instantiated quest '${firestoreQuest.title}' directly from Firebase Firestore 'mock_quests'!")
+                return firestoreQuest
+            }
+            Log.d("HẻmQuest", "Using local curated fallback quest.")
             return mockRepository.getFallbackQuest(request)
         }
 
@@ -46,7 +141,12 @@ class GeminiQuestRepository(
                 stops = enrichedStops
             )
         } catch (e: Exception) {
-            Log.w("HẻmQuest", "Gemini API unavailable (${e.message}). Seamlessly using curated quest.")
+            Log.w("HẻmQuest", "Gemini API unavailable (${e.message}). Pulling from Firestore 'mock_quests'...")
+            val firestoreQuest = fetchMatchingQuestFromFirestore(request)
+            if (firestoreQuest != null) {
+                Log.d("HẻmQuest", "Instantiated quest '${firestoreQuest.title}' from Firebase Firestore 'mock_quests'!")
+                return firestoreQuest
+            }
             mockRepository.getFallbackQuest(request)
         }
     }

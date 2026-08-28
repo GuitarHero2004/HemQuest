@@ -37,10 +37,10 @@ data class UserProfileData(
     val photoUrl: String? = null,
     val isGoogleLinked: Boolean = false,
     val isEmailLinked: Boolean = false,
-    val greenScore: Int = 120,
-    val xp: Int = 350,
-    val streak: Int = 3,
-    val userLevel: Int = 2,
+    val greenScore: Int = 0,
+    val xp: Int = 0,
+    val streak: Int = 0,
+    val userLevel: Int = 1,
     val createdAt: Long = System.currentTimeMillis()
 )
 
@@ -79,7 +79,7 @@ class AuthManager(
         val userEmail = email?.ifBlank { null }
             ?: currentUser?.email?.ifBlank { null }
             ?: prefs.getString("local_user_email", null)?.ifBlank { null }
-            ?: "anhminhnts2004@gmail.com"
+            ?: uid.ifBlank { "guest_user" }
         return userEmail.trim().lowercase()
     }
 
@@ -861,13 +861,13 @@ class AuthManager(
             }
 
             if (snapshot.exists()) {
-                val totalSteps = (snapshot.getLong("totalSteps") ?: 4250L).toInt()
-                val completedCheckpoints = (snapshot.getLong("completedCheckpoints") ?: 8L).toInt()
-                val totalXp = (snapshot.getLong("totalXp") ?: 380L).toInt()
-                val currentStreak = (snapshot.getLong("currentStreak") ?: 3L).toInt()
-                val totalDistanceMeters = snapshot.getDouble("totalDistanceMeters") ?: 3180.0
-                val completedQuestsCount = (snapshot.getLong("completedQuestsCount") ?: 3L).toInt()
-                val rawBadgeIds = snapshot.getString("unlockedBadgeIds") ?: "first_step,alley_walker"
+                val totalSteps = (snapshot.getLong("totalSteps") ?: 0L).toInt()
+                val completedCheckpoints = (snapshot.getLong("completedCheckpoints") ?: 0L).toInt()
+                val totalXp = (snapshot.getLong("totalXp") ?: 0L).toInt()
+                val currentStreak = (snapshot.getLong("currentStreak") ?: 0L).toInt()
+                val totalDistanceMeters = snapshot.getDouble("totalDistanceMeters") ?: 0.0
+                val completedQuestsCount = (snapshot.getLong("completedQuestsCount") ?: 0L).toInt()
+                val rawBadgeIds = snapshot.getString("unlockedBadgeIds") ?: ""
                 
                 val mergedBadges = (rawBadgeIds.split(",").map { it.trim() } + cloudBadgeIds)
                     .filter { it.isNotEmpty() }

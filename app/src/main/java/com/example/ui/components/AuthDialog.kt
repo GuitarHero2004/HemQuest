@@ -101,6 +101,13 @@ fun AuthDialog(
 
     val isSignUp = authUiState.isSignUpMode
 
+    // Automatically close dialog as soon as user profile is authenticated
+    androidx.compose.runtime.LaunchedEffect(authUiState.userProfile) {
+        if (authUiState.userProfile != null) {
+            onDismiss()
+        }
+    }
+
     // Password strength calculation
     val passwordStrength = remember(password) {
         when {

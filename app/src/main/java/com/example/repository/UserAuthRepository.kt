@@ -90,7 +90,7 @@ class UserAuthRepository(
         val email = user?.email?.ifBlank { null }
             ?: prefs.getString("local_user_email", null)?.ifBlank { null }
             ?: user?.uid?.ifBlank { null }
-            ?: "anhminhnts2004@gmail.com"
+            ?: "guest_user"
         return email.trim().lowercase()
     }
 
