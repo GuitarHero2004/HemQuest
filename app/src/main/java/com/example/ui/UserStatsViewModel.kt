@@ -209,11 +209,25 @@ class UserStatsViewModel(
         }
     }
 
-    fun addSteps(steps: Int) {
+    fun onStepDetected(steps: Int = 1) {
+        if (steps <= 0) return
+        val deltaDistance = steps * 0.75
+        _locationState.update { current ->
+            val newSessionDist = current.sessionDistanceMeters + deltaDistance
+            val newSessionSteps = current.sessionSteps + steps
+            current.copy(
+                sessionDistanceMeters = newSessionDist,
+                sessionSteps = newSessionSteps
+            )
+        }
         viewModelScope.launch {
             userStatsDao.addSteps(steps)
-            userStatsDao.addDistance(steps * 0.75)
+            userStatsDao.addDistance(deltaDistance)
         }
+    }
+
+    fun addSteps(steps: Int) {
+        onStepDetected(steps)
     }
 
     fun incrementCheckpoints() {

@@ -1426,7 +1426,18 @@ fun QuestSequenceProgressHUD(
                 trackColor = Color(0xFFE2E8F0)
             )
 
-            // Expanded Sequence Node Stepper & Live Step Metrics
+            // Real-time Steps, Distance, Calories, and CO2 Environmental Bar
+            Spacer(modifier = Modifier.height(8.dp))
+            LiveWalkingMetricsBar(
+                stepCount = uiState.questStepCount,
+                distanceMeters = uiState.questDistanceMeters,
+                caloriesBurned = uiState.questCaloriesBurned,
+                co2SavedKg = uiState.questCo2SavedKg,
+                currentLanguage = currentLanguage,
+                isCompact = !uiState.isSequenceHudExpanded
+            )
+
+            // Expanded Sequence Node Stepper
             if (uiState.isSequenceHudExpanded) {
                 Spacer(modifier = Modifier.height(10.dp))
 
@@ -1520,87 +1531,109 @@ fun QuestSequenceProgressHUD(
                         }
                     }
                 }
+            }
+        }
+    }
+}
 
-                Spacer(modifier = Modifier.height(8.dp))
+@Composable
+fun LiveWalkingMetricsBar(
+    stepCount: Int,
+    distanceMeters: Double,
+    caloriesBurned: Int,
+    co2SavedKg: Double,
+    currentLanguage: String,
+    isCompact: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    // Formatted metrics
+    val formattedDist = if (distanceMeters >= 1000.0) {
+        String.format(java.util.Locale.US, "%.2f km", distanceMeters / 1000.0)
+    } else {
+        "${distanceMeters.toInt()}m"
+    }
 
-                // Live Step Counter & Environmental Walking Dashboard
-                Surface(
-                    color = Color(0xFFF8FAFC),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Steps counter
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("👟", fontSize = 12.sp)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "${uiState.questStepCount} ${l(currentLanguage, "bước", "steps", "步", "歩", "걸음")}",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Ink900
-                            )
-                        }
+    val formattedCo2 = if (co2SavedKg < 1.0) {
+        val grams = (co2SavedKg * 1000.0).toInt().coerceAtLeast(0)
+        "${grams}g"
+    } else {
+        String.format(java.util.Locale.US, "%.2f kg", co2SavedKg)
+    }
 
-                        // Walking distance
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Place,
-                                contentDescription = null,
-                                tint = ForestGreen,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = "${uiState.questDistanceMeters.toInt()}m",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = ForestGreen
-                            )
-                        }
+    Surface(
+        color = Color(0xFFF8FAFC),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = if (isCompact) 4.dp else 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Live Footsteps Counter
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("👟", fontSize = if (isCompact) 11.sp else 12.sp)
+                Spacer(modifier = Modifier.width(3.dp))
+                Text(
+                    text = "$stepCount ${l(currentLanguage, "bước", "steps", "步", "歩", "걸음")}",
+                    fontSize = if (isCompact) 10.5.sp else 11.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Ink900
+                )
+            }
 
-                        // Calories
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.LocalFireDepartment,
-                                contentDescription = null,
-                                tint = ClayOrange,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = "${uiState.questCaloriesBurned} kcal",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = ClayOrange
-                            )
-                        }
+            // Real-time Distance Traveled
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Place,
+                    contentDescription = null,
+                    tint = ForestGreen,
+                    modifier = Modifier.size(if (isCompact) 11.dp else 13.dp)
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = formattedDist,
+                    fontSize = if (isCompact) 10.5.sp else 11.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ForestGreen
+                )
+            }
 
-                        // CO2 Saved
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Eco,
-                                contentDescription = null,
-                                tint = GrabGreen,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = String.format("%.2f kg", uiState.questCo2SavedKg),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = ForestGreen
-                            )
-                        }
-                    }
-                }
+            // Real-time Calories Burned
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.LocalFireDepartment,
+                    contentDescription = null,
+                    tint = ClayOrange,
+                    modifier = Modifier.size(if (isCompact) 11.dp else 13.dp)
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = "$caloriesBurned kcal",
+                    fontSize = if (isCompact) 10.5.sp else 11.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ClayOrange
+                )
+            }
+
+            // Real-time CO2 Emission Saved
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Eco,
+                    contentDescription = null,
+                    tint = GrabGreen,
+                    modifier = Modifier.size(if (isCompact) 11.dp else 13.dp)
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = formattedCo2,
+                    fontSize = if (isCompact) 10.5.sp else 11.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ForestGreen
+                )
             }
         }
     }

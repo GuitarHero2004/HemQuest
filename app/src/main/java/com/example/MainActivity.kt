@@ -1,6 +1,7 @@
 package com.example
 
 import android.os.Bundle
+import kotlinx.coroutines.launch
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -115,23 +116,42 @@ class MainActivity : ComponentActivity() {
                 ) { /* Permissions granted */ }
 
                 androidx.compose.runtime.LaunchedEffect(Unit) {
-                    permissionLauncher.launch(
-                        arrayOf(
-                            android.Manifest.permission.ACCESS_FINE_LOCATION,
-                            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                            android.Manifest.permission.CAMERA
-                        )
+                    val permissionsToRequest = mutableListOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                        android.Manifest.permission.CAMERA
                     )
-                    try {
-                        val tracker = com.example.util.LocationTracker(context)
-                        tracker.getLocationFlow().collect { loc ->
-                            if (loc != null) {
-                                viewModel.updateUserLocation(loc.latitude, loc.longitude)
-                                userStatsViewModel.onLocationUpdate(loc)
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        permissionsToRequest.add(android.Manifest.permission.ACTIVITY_RECOGNITION)
+                    }
+                    permissionLauncher.launch(permissionsToRequest.toTypedArray())
+
+                    // Real-time device hardware step counter & accelerometer motion sensor
+                    launch {
+                        try {
+                            val stepTracker = com.example.util.StepSensorTracker(context)
+                            stepTracker.getStepFlow().collect { stepDelta ->
+                                viewModel.onStepDetected(stepDelta)
+                                userStatsViewModel.onStepDetected(stepDelta)
                             }
+                        } catch (e: Exception) {
+                            // Step sensor fallback
                         }
-                    } catch (e: Exception) {
-                        // Location permission might be pending
+                    }
+
+                    // Real-time GPS location & distance tracker
+                    launch {
+                        try {
+                            val tracker = com.example.util.LocationTracker(context)
+                            tracker.getLocationFlow().collect { loc ->
+                                if (loc != null) {
+                                    viewModel.updateUserLocation(loc.latitude, loc.longitude)
+                                    userStatsViewModel.onLocationUpdate(loc)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            // Location permission might be pending
+                        }
                     }
                 }
                 HemQuestApp(viewModel, userStatsViewModel, authViewModel)

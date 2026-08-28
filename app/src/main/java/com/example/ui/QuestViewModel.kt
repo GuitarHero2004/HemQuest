@@ -240,6 +240,28 @@ class QuestViewModel(
         }
     }
 
+    private var lastTrackedLocationLat: Double? = null
+    private var lastTrackedLocationLng: Double? = null
+
+    /**
+     * Triggered in real-time by physical hardware step sensor, accelerometer motion, or GPS movement.
+     */
+    fun onStepDetected(stepCount: Int = 1) {
+        if (stepCount <= 0) return
+        _uiState.update { current ->
+            val newSteps = current.questStepCount + stepCount
+            val newDist = current.questDistanceMeters + (stepCount * 0.75)
+            val newKcal = (newSteps * 0.042).toInt().coerceAtLeast(if (newSteps > 10) 1 else 0)
+            val newCo2 = newDist * 0.000154 // 154g CO2/km avoided compared to a 150cc scooter
+            current.copy(
+                questStepCount = newSteps,
+                questDistanceMeters = newDist,
+                questCaloriesBurned = newKcal,
+                questCo2SavedKg = newCo2
+            )
+        }
+    }
+
     fun updateUserLocation(lat: Double, lng: Double) {
         val state = _uiState.value
         val ongoing = state.ongoingStop
@@ -250,27 +272,50 @@ class QuestViewModel(
             calculateBearingDegrees(lat, lng, ongoing.latitude, ongoing.longitude)
         } else 0.0
 
+        val prevLat = lastTrackedLocationLat
+        val prevLng = lastTrackedLocationLng
+        lastTrackedLocationLat = lat
+        lastTrackedLocationLng = lng
+
+        var deltaDist = 0.0
+        if (prevLat != null && prevLng != null) {
+            val moved = calculateDistanceMeters(prevLat, prevLng, lat, lng).toDouble()
+            // Filter realistic movement and ignore GPS jump spikes (>150m in a single frame)
+            if (moved in 0.8..150.0) {
+                deltaDist = moved
+            }
+        }
+
         var newlyDiscoveredId: String? = null
         if (ongoing != null && dist <= 25 && !state.autoDiscoveredStopIds.contains(ongoing.id)) {
             newlyDiscoveredId = ongoing.id
         }
 
-        _uiState.update {
+        _uiState.update { current ->
             val updatedAutoDiscovered = if (newlyDiscoveredId != null) {
-                it.autoDiscoveredStopIds + newlyDiscoveredId
+                current.autoDiscoveredStopIds + newlyDiscoveredId
             } else {
-                it.autoDiscoveredStopIds
+                current.autoDiscoveredStopIds
             }
 
-            it.copy(
+            val newDist = current.questDistanceMeters + deltaDist
+            val newSteps = if (deltaDist > 0) current.questStepCount + (deltaDist / 0.75).toInt() else current.questStepCount
+            val newKcal = (newSteps * 0.042).toInt().coerceAtLeast(if (newSteps > 10) 1 else 0)
+            val newCo2 = newDist * 0.000154
+
+            current.copy(
                 userLocationLat = lat,
                 userLocationLng = lng,
                 distanceToOngoingMeters = dist,
                 estimatedMinutesWalk = maxOf(1, (dist / 80.0).toInt()),
-                cardinalDirection = getCardinalDirection(bearing, it.questRequest.language),
+                cardinalDirection = getCardinalDirection(bearing, current.questRequest.language),
                 autoDiscoveredStopIds = updatedAutoDiscovered,
-                showCheckpointDiscoveryDialog = newlyDiscoveredId != null || it.showCheckpointDiscoveryDialog,
-                discoveryStop = if (newlyDiscoveredId != null) ongoing else it.discoveryStop
+                showCheckpointDiscoveryDialog = newlyDiscoveredId != null || current.showCheckpointDiscoveryDialog,
+                discoveryStop = if (newlyDiscoveredId != null) ongoing else current.discoveryStop,
+                questDistanceMeters = newDist,
+                questStepCount = newSteps,
+                questCaloriesBurned = newKcal,
+                questCo2SavedKg = newCo2
             )
         }
     }

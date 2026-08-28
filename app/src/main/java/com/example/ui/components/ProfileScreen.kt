@@ -992,6 +992,90 @@ fun ProfileScreen(
                     }
                 }
 
+                // Eco-Savings & Health Impact Row (Calories Burnt & CO2 Free Emissions Saved)
+                item {
+                    val totalMeters = userStats.totalDistanceMeters.coerceAtLeast(userStats.totalSteps * 0.75)
+                    val totalCalories = (userStats.totalSteps * 0.042).toInt().coerceAtLeast(if (userStats.totalSteps > 10) 1 else 0)
+                    val totalCo2Kg = totalMeters * 0.000154
+                    val formattedCo2 = if (totalCo2Kg < 1.0) {
+                        "${(totalCo2Kg * 1000).toInt()} g CO₂"
+                    } else {
+                        String.format(java.util.Locale.US, "%.2f kg CO₂", totalCo2Kg)
+                    }
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                        shape = RoundedCornerShape(18.dp),
+                        border = BorderStroke(1.dp, Color(0xFFBBF7D0)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Calories Burned
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.LocalFireDepartment,
+                                    contentDescription = null,
+                                    tint = StreakFlame,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "$totalCalories kcal",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Ink900
+                                    )
+                                    Text(
+                                        text = l(currentLanguage, "Năng lượng tiêu hao", "Calories Burned", "消耗卡路里", "消費カロリー", "소모 칼로리"),
+                                        fontSize = 10.sp,
+                                        color = Ink600
+                                    )
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .width(1.dp)
+                                    .height(30.dp)
+                                    .background(Color(0xFFDCFCE7))
+                            )
+
+                            // CO2 Footprint Saved
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Eco,
+                                    contentDescription = null,
+                                    tint = ForestGreen,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = formattedCo2,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = ForestGreen
+                                    )
+                                    Text(
+                                        text = l(currentLanguage, "Giảm phát thải CO₂", "CO₂ Avoided", "减碳排放", "CO₂削減量", "CO₂ 절감량"),
+                                        fontSize = 10.sp,
+                                        color = Ink600
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Visual Progress Tracker (Distance & Cultural Points Analytics)
                 item {
                     QuestProgressTrackerChart(
