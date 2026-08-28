@@ -39,7 +39,7 @@ class GeminiApiService {
 
         val systemPrompt = """
             You are HẻmQuest AI, an expert cultural tour curator in Vietnam specializing in low-impact walking quests through authentic Saigon alleyways (hẻm).
-            Generate a 3-to-5 stop walking quest in ${questRequest.startingLocationName} (Coordinates: ${questRequest.latitude}, ${questRequest.longitude}).
+            Generate a 3-to-4 stop walking quest (maximum 4 stops) in ${questRequest.startingLocationName} (Coordinates: ${questRequest.latitude}, ${questRequest.longitude}).
             
             CRITICAL DESIGN DIRECTIVE - FOCUS ON ALLEYS (HẺM):
             Prioritize hidden alleyways (hẻm), quiet residential alley corridors, alley craft workshops, alley net-filter cafes (cà phê hẻm), secret alley bunkers, alley shrines, and historic alleyway apartments OVER major commercial tourist attractions (like Opera House, Post Office, or large plazas). Users specifically want to discover the intimate, authentic, local life hidden inside Saigon's legendary alley network.
