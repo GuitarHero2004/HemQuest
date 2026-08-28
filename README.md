@@ -514,27 +514,6 @@ Potential future areas:
 
 ---
 
-## 🎬 Recommended Demo Flow
-
-A short live demonstration can follow this sequence:
-
-1. Open the **Home** screen
-2. Show **Streak, XP, and Green Points**
-3. Browse or filter Quest categories
-4. Open **Bách Khoa Hẻm**
-5. Select a Quest such as the **Phú Bình Lantern Quest**
-6. Start the Quest journey
-7. Open a checkpoint
-8. Capture or select a Quest photo
-9. Run **Gemini Multimodal verification**
-10. Complete the checkpoint
-11. Show updated XP / Green Points
-12. Open **Badges / Profile / Passport**
-
-The **AI photo verification** should be the main technical highlight of the demo.
-
----
-
 ## 🛠️ Getting Started
 
 ### Prerequisites
@@ -548,8 +527,12 @@ The **AI photo verification** should be the main technical highlight of the demo
 ### Clone the Repository
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
-cd <YOUR_PROJECT_FOLDER>
+# Clone the repository
+git clone https://github.com/your-username/hemquest.git
+cd hemquest
+
+# Build the project
+./gradlew assembleDebug
 ```
 
 Open the project in **Android Studio** and allow Gradle to synchronise dependencies.
