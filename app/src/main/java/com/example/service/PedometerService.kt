@@ -90,7 +90,12 @@ class PedometerService : Service(), SensorEventListener {
             }
             ACTION_STOP -> {
                 stopSensorListening()
-                stopForeground(STOP_FOREGROUND_REMOVE)
+                try {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    notificationManager?.cancel(NOTIFICATION_ID)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error stopping foreground notification", e)
+                }
                 stopSelf()
             }
             ACTION_RESET -> {
@@ -101,7 +106,7 @@ class PedometerService : Service(), SensorEventListener {
                 onStepEvent(delta)
             }
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -281,7 +286,8 @@ class PedometerService : Service(), SensorEventListener {
             .setContentText(content)
             .setStyle(NotificationCompat.BigTextStyle().bigText("Đang theo dõi bước chân & chỉ số sống xanh:\n$content"))
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
+            .setOngoing(false)
+            .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
     }
@@ -310,6 +316,12 @@ class PedometerService : Service(), SensorEventListener {
     override fun onDestroy() {
         super.onDestroy()
         stopSensorListening()
+        try {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            notificationManager?.cancel(NOTIFICATION_ID)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error cleaning up notification in onDestroy", e)
+        }
         serviceScope.cancel()
     }
 

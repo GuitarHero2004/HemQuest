@@ -129,9 +129,9 @@ class MainActivity : ComponentActivity() {
                     }
                     permissionLauncher.launch(permissionsToRequest.toTypedArray())
 
-                    // Start background/foreground PedometerService for continuous tracking
+                    // Ensure background pedometer service is turned off and notifications are dismissed
                     try {
-                        com.example.service.PedometerService.startService(context)
+                        com.example.service.PedometerService.stopService(context)
                     } catch (e: Exception) {
                         // Fallback handling
                     }

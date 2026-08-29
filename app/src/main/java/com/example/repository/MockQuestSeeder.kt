@@ -70,12 +70,15 @@ class MockQuestSeeder(
 
                 val curatedPathKeys = listOf(
                     "q10_bk",        // Bách Khoa Sài Gòn & Hẻm Sinh Viên (HCMUT Heritage)
-                    "q_thanhda",      // Ký Ức Thanh Đa: Hẻm Bờ Sông & Cư Xá Cũ
-                    "q11_crafts",     // Làng Lồng Đèn Phú Bình & Xưởng Thủ Công
-                    "q3_french",      // Hẻm Biệt Thự Cổ & Cà Phê Nắng Sớm
-                    "q5_food",        // Hẻm Ẩm Thực & Hội Quán Chợ Lớn
-                    "q3_bunker",      // Biệt Động Sài Gòn & Hầm Bí Mật
-                    "q1_alleys"       // Cà Phê Vợt & Hẻm Di Sản Sài Gòn
+                    "q10_bk_food",   // Bách Khoa Ẩm Thực Sinh Viên & Hẻm Đêm Đồ Án
+                    "q_thanhda",     // Ký Ức Thanh Đa: Hẻm Bờ Sông & Cư Xá Cũ
+                    "q11_crafts",    // Làng Lồng Đèn Phú Bình & Xưởng Thủ Công
+                    "q3_french",     // Hẻm Biệt Thự Cổ & Cà Phê Nắng Sớm
+                    "q5_food",       // Hẻm Ẩm Thực & Hội Quán Chợ Lớn
+                    "q5_herbal",     // Phố Thuốc Bắc Triệu Quang Phục & Hào Sĩ Phường
+                    "q3_bunker",     // Biệt Động Sài Gòn & Hầm Bí Mật
+                    "q4_riverfront", // Hẻm Bến Vân Đồn, Cầu Mống & Bến Xưa Sài Gòn
+                    "q1_alleys"      // Cà Phê Vợt & Hẻm Di Sản Sài Gòn
                 )
 
                 var seededCount = 0

@@ -485,12 +485,22 @@ fun GlossaryTermCard(
 
     val exampleLocations = if (currentLanguage == "vi") item.exampleLocationsVi else item.exampleLocationsEn
 
+    val isBachKhoaItem = item.id.contains("bk", ignoreCase = true) || item.term.contains("Bách Khoa", ignoreCase = true)
+
     Card(
         colors = CardDefaults.cardColors(containerColor = PaperWhite),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 6.dp else 2.dp),
+        shape = RoundedCornerShape(22.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 6.dp else if (isBachKhoaItem) 4.dp else 2.dp),
+        border = BorderStroke(
+            width = if (isBachKhoaItem) 1.5.dp else 1.dp,
+            color = if (isBachKhoaItem) item.accentColor.copy(alpha = 0.4f) else Color(0xFFE2E8F0)
+        ),
         modifier = Modifier
             .fillMaxWidth()
+            .padding(
+                horizontal = 2.dp,
+                vertical = if (isBachKhoaItem) 6.dp else 2.dp
+            )
             .clickable { onToggleExpand() }
             .animateContentSize()
             .testTag("glossary_item_${item.id}")

@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +52,7 @@ fun CulturalGlossaryBanner(
         colors = CardDefaults.cardColors(containerColor = PaperWhite),
         shape = RoundedCornerShape(22.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
         modifier = modifier
             .fillMaxWidth()
             .clickable { onOpenGlossary() }
@@ -59,7 +61,7 @@ fun CulturalGlossaryBanner(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(horizontal = 18.dp, vertical = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -72,7 +74,7 @@ fun CulturalGlossaryBanner(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(50.dp)
                             .clip(CircleShape)
                             .background(
                                 Brush.linearGradient(
@@ -86,72 +88,58 @@ fun CulturalGlossaryBanner(
 
                     Spacer(modifier = Modifier.width(14.dp))
 
-                    Column {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = l(
-                                    currentLanguage,
-                                    "Bách Khoa Hẻm Sài Gòn",
-                                    "Cultural Glossary",
-                                    "西贡深巷文化百科",
-                                    "サイゴン路地裏文化辞典",
-                                    "사이공 골목 문화 용어집"
-                                ),
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Ink900,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Surface(
-                                color = SunGold.copy(alpha = 0.2f),
-                                shape = CircleShape
-                            ) {
-                                Text(
-                                    text = l(currentLanguage, "10 TỪ", "10 TERMS", "10词条", "10項目", "10용어"),
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Ink900,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = l(
+                                currentLanguage,
+                                "Bách Khoa Hẻm Sài Gòn",
+                                "Saigon Cultural Glossary",
+                                "西贡深巷文化百科",
+                                "サイゴン路地裏文化辞典",
+                                "사이공 골목 문화 사전"
+                            ),
+                            fontSize = 15.5.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Ink900,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height(3.dp))
 
                         Text(
                             text = l(
                                 currentLanguage,
-                                "Giải thích 'Hẻm', 'Xẹt', 'Biệt Động', 'Cà Phê Vợt'...",
-                                "Explain 'Hẻm', 'Xẹt', 'Biệt Động', 'Net Coffee'...",
-                                "通俗解读“Hẻm”、“Xẹt”、“西贡特工”等...",
-                                "「Hẻm」「Xẹt」「網フィルター珈琲」の解説...",
-                                "'Hẻm', 'Xẹt', '특공대', '그물 커피' 해설..."
+                                "Giải thích 'Hẻm', 'Xẹt', 'Biệt Động', 'Cà Phê Vợt', 'Bách Khoa'...",
+                                "Explain 'Hẻm', 'Xẹt', 'Biệt Động', 'Net Coffee', 'Bách Khoa'...",
+                                "通俗解读“Hẻm”、“Xẹt”、“西贡特工”、“理工小巷”等...",
+                                "「Hẻm」「Xẹt」「網珈琲」「工科大ヘム」などの解説...",
+                                "'Hẻm', 'Xẹt', '특공대', '그물 커피', '공과대' 해설..."
                             ),
                             fontSize = 12.sp,
                             color = Ink600,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            lineHeight = 16.sp
                         )
                     }
                 }
 
-                Surface(
-                    color = GrabGreen.copy(alpha = 0.12f),
-                    shape = CircleShape,
-                    modifier = Modifier.size(32.dp)
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF1F5F9)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "Open Glossary",
-                            tint = ForestGreen,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = "Open Glossary",
+                        tint = GrabGreen,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
         }

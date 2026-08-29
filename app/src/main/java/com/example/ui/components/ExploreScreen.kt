@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -294,14 +295,14 @@ fun ExploreScreen(
 
     val districtFilters = listOf(
         "" to l(currentLanguage, "Tất cả phường/khu vực", "All Wards", "全部区域", "全地域", "전체 지역"),
-        "Diên Hồng" to "🎓 P. Diên Hồng (Bách Khoa)",
-        "Sài Gòn" to "📍 P. Sài Gòn",
-        "Chợ Lớn" to "📍 P. Chợ Lớn",
-        "Bàn Cờ" to "📍 P. Bàn Cờ",
-        "Xuân Hòa" to "📍 P. Xuân Hòa",
-        "Hòa Bình" to "📍 P. Hòa Bình",
-        "Minh Phụng" to "📍 P. Minh Phụng",
-        "Bình Thới" to "📍 P. Bình Thới"
+        "Diên Hồng" to l(currentLanguage, "🎓 P. Diên Hồng (Bách Khoa)", "🎓 Dien Hong (HCMUT BK)", "🎓 延洪坊（理工大）", "🎓 ディエンホン（工科大）", "🎓 디엔홍 (공과대)"),
+        "Sài Gòn" to l(currentLanguage, "📍 P. Sài Gòn", "📍 Saigon Ward", "📍 西贡坊", "📍 サイゴン坊", "📍 사이공동"),
+        "Chợ Lớn" to l(currentLanguage, "📍 P. Chợ Lớn", "📍 Cho Lon Ward", "📍 堤岸坊", "📍 チョロン坊", "📍 쩌롱동"),
+        "Bàn Cờ" to l(currentLanguage, "📍 P. Bàn Cờ", "📍 Ban Co Ward", "📍 棋盘坊", "📍 バンコー坊", "📍 반꺼동"),
+        "Xuân Hòa" to l(currentLanguage, "📍 P. Xuân Hòa", "📍 Xuan Hoa Ward", "📍 春和坊", "📍 スアンホア坊", "📍 쑤언호아동"),
+        "Hòa Bình" to l(currentLanguage, "📍 P. Hòa Bình", "📍 Hoa Binh Ward", "📍 和平坊", "📍 ホアビン坊", "📍 화빈동"),
+        "Minh Phụng" to l(currentLanguage, "📍 P. Minh Phụng", "📍 Minh Phung Ward", "📍 明凤坊", "📍 ミンフン坊", "📍 민풍동"),
+        "Bình Thới" to l(currentLanguage, "📍 P. Bình Thới", "📍 Binh Thoi Ward", "📍 平泰坊", "📍 ビントイ坊", "📍 빈터이동")
     )
 
     val filteredQuests = featuredQuests.filter { quest ->
@@ -1041,15 +1042,29 @@ fun ExploreScreen(
             }
 
             // Featured Quest Cards List
-            items(filteredQuests, key = { it.title }) { quest ->
+            items(filteredQuests, key = { it.request.startingLocationName + "_" + it.emoji }) { quest ->
+                val isBachKhoa = quest.emoji == "🎓" ||
+                        quest.district.contains("Diên Hồng", ignoreCase = true) ||
+                        quest.district.contains("Dien Hong", ignoreCase = true) ||
+                        quest.district.contains("延洪", ignoreCase = true)
+
                 Card(
                     colors = CardDefaults.cardColors(containerColor = PaperWhite),
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp, pressedElevation = 6.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                    shape = RoundedCornerShape(22.dp),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = if (isBachKhoa) 5.dp else 3.dp,
+                        pressedElevation = 7.dp
+                    ),
+                    border = BorderStroke(
+                        width = if (isBachKhoa) 1.5.dp else 1.dp,
+                        color = if (isBachKhoa) Color(0xFF3B82F6).copy(alpha = 0.5f) else Color(0xFFE5E7EB)
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 7.dp)
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = if (isBachKhoa) 10.dp else 7.dp
+                        )
                         .clickable { safeStartQuest(quest.request) }
                         .testTag("featured_quest_card_${quest.category.name}")
                 ) {
@@ -1058,7 +1073,7 @@ fun ExploreScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(134.dp)
+                                .heightIn(min = 138.dp)
                                 .background(
                                     Brush.linearGradient(
                                         colors = quest.bgColors,
@@ -1079,7 +1094,7 @@ fun ExploreScreen(
                             )
 
                             Column(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.SpaceBetween
                             ) {
                                 // Top row: District Location Pill & XP Badge
@@ -1134,8 +1149,10 @@ fun ExploreScreen(
                                     }
                                 }
 
+                                Spacer(modifier = Modifier.height(14.dp))
+
                                 // Title & Tagline
-                                Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                                Column(modifier = Modifier.fillMaxWidth()) {
                                     Text(
                                         text = quest.title,
                                         fontSize = 17.5.sp,
@@ -1144,14 +1161,15 @@ fun ExploreScreen(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Spacer(modifier = Modifier.height(3.dp))
                                     Text(
                                         text = quest.tagline,
                                         fontSize = 11.5.sp,
                                         fontWeight = FontWeight.Normal,
                                         color = Color.White.copy(alpha = 0.92f),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        lineHeight = 15.sp
                                     )
                                 }
                             }

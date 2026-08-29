@@ -34,12 +34,27 @@ class MockQuestRepository {
         val questType = when {
             loc.contains("thanh đa") || loc.contains("thanh da") || loc.contains("cư xá thanh đa") || loc.contains("cu xa thanh da") || loc.contains("bình quới") || loc.contains("binh quoi") || loc.contains("bờ sông") || loc.contains("bo song") -> "q_thanhda"
             loc.contains("hòa bình") || loc.contains("hoa binh") || loc.contains("bình thới") || loc.contains("binh thoi") || loc.contains("minh phụng") || loc.contains("minh phung") || loc.contains("phú thọ") || loc.contains("phu tho") || loc.contains("lạc long quân") || loc.contains("phú bình") || loc.contains("lantern") || loc.contains("crafts") || loc.contains("lồng đèn") || loc.contains("11") -> "q11_crafts"
-            loc.contains("bách khoa") || loc.contains("bach khoa") || loc.contains("hcmut") || loc.contains("tô hiến thành") || loc.contains("lý thường kiệt") || loc.contains("lữ gia") || loc.contains("q10") || loc.contains("quận 10") || loc.contains("sinh viên") -> "q10_bk"
+            loc.contains("bách khoa") || loc.contains("bach khoa") || loc.contains("hcmut") || loc.contains("tô hiến thành") || loc.contains("lý thường kiệt") || loc.contains("lữ gia") || loc.contains("q10") || loc.contains("quận 10") || loc.contains("sinh viên") -> {
+                if (loc.contains("ẩm thực") || loc.contains("ăn vặt") || loc.contains("cơm tấm") || loc.contains("food") || loc.contains("snack")) {
+                    "q10_bk_food"
+                } else if (loc.contains("in ấn") || loc.contains("linh kiện") || loc.contains("maker") || loc.contains("đồ án")) {
+                    "q10_bk"
+                } else {
+                    listOf("q10_bk", "q10_bk_food").random()
+                }
+            }
+            loc.contains("bến vân đồn") || loc.contains("ben van don") || loc.contains("cầu mống") || loc.contains("cau mong") || loc.contains("quận 4") || loc.contains("q4") || loc.contains("vĩnh hội") -> "q4_riverfront"
             loc.contains("french") || loc.contains("colonial") || loc.contains("biệt thự") || loc.contains("xuân hòa") || loc.contains("xuan hoa") || loc.contains("nhiêu lộc") || loc.contains("nhieu loc") -> "q3_french"
-            loc.contains("chợ lớn") || loc.contains("cho lon") || loc.contains("chợ quán") || loc.contains("cho quan") || loc.contains("an đông") || loc.contains("an dong") || loc.contains("street food") || loc.contains("ẩm thực") || loc.contains("sủi cảo") || loc.contains("hà tôn quyền") -> "q5_food"
+            loc.contains("chợ lớn") || loc.contains("cho lon") || loc.contains("chợ quán") || loc.contains("cho quan") || loc.contains("an đông") || loc.contains("an dong") || loc.contains("street food") || loc.contains("ẩm thực") || loc.contains("sủi cảo") || loc.contains("hà tôn quyền") -> {
+                if (loc.contains("thuốc bắc") || loc.contains("hào sĩ phường") || loc.contains("lương nhữ học") || loc.contains("herbal")) {
+                    "q5_herbal"
+                } else {
+                    listOf("q5_food", "q5_herbal").random()
+                }
+            }
             loc.contains("commandos") || loc.contains("biệt động") || loc.contains("bunker") || loc.contains("bàn cờ") || loc.contains("ban co") || loc.contains("đỗ phủ") || loc.contains("phở bình") -> "q3_bunker"
             loc.contains("pasteur") || loc.contains("sài gòn") || loc.contains("sai gon") || loc.contains("tân định") || loc.contains("tan dinh") || loc.contains("bến thành") || loc.contains("ben thanh") || loc.contains("cầu ông lãnh") || loc.contains("cau ong lanh") -> "q1_alleys"
-            else -> listOf("q_thanhda", "q10_bk", "q11_crafts", "q3_french", "q5_food", "q3_bunker", "q1_alleys").random()
+            else -> listOf("q_thanhda", "q10_bk", "q10_bk_food", "q11_crafts", "q3_french", "q5_food", "q5_herbal", "q3_bunker", "q4_riverfront", "q1_alleys").random()
         }
 
         val stops = when (questType) {
@@ -432,6 +447,129 @@ class MockQuestRepository {
                     status = StopStatus.UPCOMING
                 )
             )
+            "q10_bk_food" -> listOf(
+                QuestStop(
+                    id = "stop_01_bkf",
+                    placeId = "bkf_1",
+                    name = l(lang, "Hẻm 493 Tô Hiến Thành - Bánh Tráng Nướng & Bò Bía (P. Diên Hồng)", "493 To Hien Thanh - Grilled Rice Paper Alley (Dien Hong)", "苏宪成493号巷烤米纸与薄饼（延洪坊）", "トーヒエンタイン493番地ヘム＆ライスペーパー焼き（ディエンホン坊）", "토히엔탄 493번지 라이스페이퍼 구이 & 보비아 (디엔홍동)"),
+                    category = l(lang, "Hẻm Ăn Vặt Sinh Viên", "Student Street Snacks", "学生街头小吃", "学生ストリートフード", "대학가 길거리 간식"),
+                    latitude = 10.774800,
+                    longitude = 106.662200,
+                    whySelected = l(lang, "Thủ phủ ăn vặt sinh viên Bách Khoa với món bánh tráng nướng trứng cút và bò bía ngọt.", "The ultimate BK student snacking spot famous for sizzling grilled rice paper and spring rolls.", "理工大学最负盛名的学生小吃聚集地，以现烤鹌鹑蛋米纸与甜薄饼闻名。", "香ばしいウズラ卵のライスペーパー焼きや生春巻きが人気の工科大生御用達の路地。", "공대생들이 즐겨 찾는 바삭한 라이스페이퍼 구이와 롤 스낵 명소."),
+                    story = l(lang, "Mỗi chiều tan học, con hẻm rực rỡ ánh than hồng và rộn rã tiếng cười của các tân kỹ sư.", "Every afternoon after class, glowing charcoal braziers and joyful student chatter fill the alley.", "放学后炭火红光点点，洋溢着莘莘学子们的欢声笑语与扑鼻香气。", "放課後になると炭火の赤が灯り、学生たちの賑やかな笑い声に包まれる。", "방과 후 숯불 향과 함께 공대생들의 웃음소리가 가득 울려 퍼지는 활기찬 골목."),
+                    factReference = "Saigon Student Street Food Archives",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh bếp than nướng bánh tráng", "Photo of charcoal grill for rice paper", "拍摄烤米纸的炭火炉", "ライスペーパーを焼く炭火台を撮影", "라이스페이퍼 굽는 숯불 화로 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.CURRENT
+                ),
+                QuestStop(
+                    id = "stop_02_bkf",
+                    placeId = "bkf_2",
+                    name = l(lang, "Quán Cơm Tấm Đồ Án Tăng Ca (Cổng 3 Tô Hiến Thành - P. Diên Hồng)", "All-Nighter Broken Rice (Gate 3 To Hien Thanh)", "通宵答辩碎米饭老店（苏宪成三号门）", "深夜残業コムタム（3号門トーヒエンタイン）", "야근 과제 껌땀 맛집 (3번 게이트 토히엔탄)"),
+                    category = l(lang, "Cơm Tấm Sinh Viên", "Student Broken Rice", "学生碎米饭", "学生コムタム", "학생 껌땀"),
+                    latitude = 10.773500,
+                    longitude = 106.660800,
+                    whySelected = l(lang, "Quán cơm mở đến nửa đêm với truyền thống sinh viên bao no, tiếp sức mùa đồ án.", "Midnight broken rice joint offering free rice refills that fuels thesis all-nighters.", "营业至深夜的碎米饭老铺，免费加饭，是答辩季学子们的深夜食堂。", "深夜まで営業しご飯おかわり自由。卒業制作を支え続ける学生の味方。", "무료 밥 리필로 졸업 프로젝트 학생들의 든든한 밤샘을 책임지는 노포."),
+                    story = l(lang, "Đĩa sườn nướng mỡ hành đậm đà cùng chén canh khổ qua dồn thịt cứu cánh bao đêm thức trắng.", "Scallion oil pork chops paired with stuffed bitter melon soup powering engineers through midnight sprints.", "葱油炭烤猪排搭配酿肉苦瓜热汤，温暖抚慰了无数熬夜画图的疲惫身心。", "ネギ油が香るポークチョップと温かいスープが徹夜の疲れを癒やす。", "파기름 돼지갈비와 따뜻한 국물이 밤샘 공부의 피로를 씻어주는 곳."),
+                    factReference = "BK Culinary Lore (Dien Hong Ward)",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh đĩa cơm sườn trứng ốp la", "Photo of broken rice plate with egg", "拍摄一份带荷包蛋的碎米饭", "目玉焼き付きコムタムの写真を撮影", "계란 후라이가 올라간 껌땀 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.UPCOMING
+                ),
+                QuestStop(
+                    id = "stop_03_bkf",
+                    placeId = "bkf_3",
+                    name = l(lang, "Hẻm 284 Lý Thường Kiệt & Trà Sữa Tươi Thanh Trùng (P.14, Q.10)", "284 Ly Thuong Kiet Alley & Fresh Milk Tea (Ward 14)", "李常杰284号巷与鲜奶茶铺（14坊）", "リトゥオンキエット284番地ヘム＆フレッシュミルクティー（14坊）", "리트엉끼엣 284번지 골목 & 프레시 밀크티 (14동)"),
+                    category = l(lang, "Giải Khát Sinh Viên", "Student Milk Tea", "学生奶茶饮品", "学生カフェ＆ティー", "학생 밀크티 & 음료"),
+                    latitude = 10.770500,
+                    longitude = 106.657200,
+                    whySelected = l(lang, "Con hẻm rợp bóng cây tập trung các tiệm trà sữa và nước mía sầu riêng mát lạnh.", "Shaded alley hosting iconic student fresh milk tea and durian sugarcane juice stands.", "绿树成荫的幽静小巷，汇聚了平价手作鲜奶茶与特色榴莲甘蔗汁。", "手作りミルクティーやドリアンサトウキビジュースが楽しめる憩いの緑陰路地。", "수제 밀크티와 시원한 사탕수수 주스를 맛볼 수 있는 그늘진 쉼터 골목."),
+                    story = l(lang, "Điểm dừng chân lý tưởng để sinh viên bàn luận đề tài tốt nghiệp sau những giờ thí nghiệm.", "The go-to pitstop for engineering project syncs and debriefs after long lab sessions.", "实验课后学子们围坐一堂、研讨学术课题与畅想未来的惬意落脚点。", "実験や講義の後に学生たちが集まり、卒業研究を語り合う憩いの場所。", "실험과 수업을 마친 학생들이 모여 담소를 나누는 여유로운 휴식처."),
+                    factReference = "Saigon Youth Alley Culture",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh ly trà sữa hoặc xe nước mía hẻm", "Photo of milk tea glass or sugarcane cart", "拍摄一杯冰凉奶茶或甘蔗汁车", "ミルクティーまたはサトウキビ屋台を撮影", "밀크티 잔 또는 사탕수수 카트 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.UPCOMING
+                )
+            )
+            "q4_riverfront" -> listOf(
+                QuestStop(
+                    id = "stop_01_q4",
+                    placeId = "q4_1",
+                    name = l(lang, "Cầu Mống Di Sản 1893 & Lối Đi Bộ Bờ Kênh Bến Nghé", "1893 Historic Cầu Mống Bridge & Canal Promenade", "1893年百年彩虹古桥与滨河步道", "1893年架橋コーモン橋＆運河プロムナード", "1893년 건립 꺼우몽 역사 보행교 & 운하 산책로"),
+                    category = l(lang, "Di Tích Lịch Sử", "Historic Bridge", "历史建筑遗迹", "歴史的建造物", "역사 유적지"),
+                    latitude = 10.769800,
+                    longitude = 106.704200,
+                    whySelected = l(lang, "Cây cầu bộ hành bằng thép cổ kính bắc qua kênh Bến Nghé nối liền trung tâm với khu xóm cũ.", "Historic green iron pedestrian bridge spanning Ben Nghe Canal connecting downtown to historic riverside alleys.", "连接市中心与历史水岸街区、横跨奔艺运河的百年墨绿色铁制步行古桥。", "サイゴン中心部と川沿いの古い街路を結ぶ、歴史ある緑の鉄製歩行者橋。", "사이공 도심과 강변 구시가지를 잇는 1893년 건립 클래식 녹색 철교."),
+                    story = l(lang, "Do công ty Eiffel thiết kế xây dựng từ thế kỷ 19, ngắm toàn cảnh sông nước và tòa nhà cổ.", "Designed by the Eiffel company in the late 19th century, offering breezy vistas of riverboats and historic shorelines.", "由法国埃菲尔工程公司于19世纪末设计建造，饱览往来驳船与沿岸百年老建筑风光。", "19世紀末エッフェル社設計。川を行き交う船と対岸の歴史的建造物を一望できる。", "19세기 말 에펠사에서 설계한 역사적인 다리로 시원한 강바람과 옛 건축물 조망."),
+                    factReference = "Di tích Kiến trúc Cầu Mống 1893",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh vòm thép cầu Mống màu xanh cổ", "Photo of vintage green iron arch", "拍摄绿色铁桥标志性钢架拱形结构", "緑のアーチ鉄橋の写真を撮影", "녹색 철제 아치 다리 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.CURRENT
+                ),
+                QuestStop(
+                    id = "stop_02_q4",
+                    placeId = "q4_2",
+                    name = l(lang, "Hẻm Cư Xá Vĩnh Hội & Ban Công Hoa Giấy (Đường Bến Vân Đồn)", "Vĩnh Hội Heritage Apartments Alley & Bougainvillea", "永会社区老建筑巷弄与三角梅阳台", "ビンホイ旧集合住宅路地＆ブーゲンビリア", "빈호이 옛 아파트 골목 & 부겐빌레아 발코니"),
+                    category = l(lang, "Chung Cư Di Sản", "Heritage Quarter", "水岸经典老楼", "レトロ公営集合住宅", "헤리티지 주거 골목"),
+                    latitude = 10.766500,
+                    longitude = 106.702500,
+                    whySelected = l(lang, "Khu cư xá ven kênh với kiến trúc hành lang mở và giàn hoa giấy rủ bóng xuống con hẻm.", "Riverside residential block with open-air corridors and cascades of bright bougainvillea.", "坐落于运河畔的开敞式长廊老住宅楼，垂落着艳丽的三角梅花瀑。", "開放的な外廊下と色鮮やかなブーゲンビリアが映える運河沿いのレトロアパート。", "시원한 복도와 화사한 부겐빌레아 꽃이 골목을 감싸는 운하변 빈티지 아파트."),
+                    story = l(lang, "Nơi từng là thương cảng sầm uất với các kho gạo, nhà máy xay xát thế kỷ trước nay thành chốn bình yên.", "Once a roaring rice-trading port lined with brick warehouses, now a serene and friendly neighborhood enclave.", "昔日米仓码头林立的繁忙商埠，如今已蜕变为充满温情与静谧的市井生活绿洲。", "かつて米問屋やレンガ造りの倉庫が並んだ港町が、穏やかな下町へと変遷。", "과거 쌀 물류 창고가 모여있던 번화한 항구에서 고즈넉하고 따뜻한 골목길로 변모."),
+                    factReference = "Ben Van Don Historic Port Guild",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh giàn hoa giấy trên tường chung cư", "Photo of bougainvillea against vintage wall", "拍摄老楼外墙上的三角梅花架", "アパートの壁に咲くブーゲンビリアを撮影", "옛 아파트 벽면 부겐빌레아 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.UPCOMING
+                ),
+                QuestStop(
+                    id = "stop_03_q4",
+                    placeId = "q4_3",
+                    name = l(lang, "Hẻm Ốc Đêm Tôn Đản & Nước Mía Cốt Dừa", "Tôn Đản Night Seafood Alley & Coconut Sugarcane", "尊诞夜市炒螺与椰浆甘蔗汁", "トンダン深夜貝料理ヘム＆ココナッツサトウキビ", "똔단 심야 해산물 골목 & 코코넛 사탕수수"),
+                    category = l(lang, "Ẩm Thực Đêm Bờ Sông", "Late-Night Seafood", "水岸深夜美食", "下町ナイトグルメ", "심야 해산물 먹거리"),
+                    latitude = 10.764100,
+                    longitude = 106.705800,
+                    whySelected = l(lang, "Con hẻm ẩm thực đêm trứ danh phương Nam với hàng chục món ốc chế biến đậm đà.", "Legendary Southern night dining alley renowned for dozens of flavorful seafood dishes.", "西贡赫赫有名的深夜海鲜小吃街，汇集了数十种香浓地道的炒螺风味。", "何十種類もの貝料理が手頃に味わえる、サイゴン屈指のナイトグルメ路地。", "수십 가지 조개 요리와 해산물을 맛볼 수 있는 유명한 야간 먹거리 골목."),
+                    story = l(lang, "Mùi sả ớt, bơ tỏi quyện cùng gió sông thổi vào mang lại trải nghiệm ẩm thực đường phố đỉnh cao.", "Aromas of lemongrass, chili, and garlic butter carried on river breezes define street life.", "香茅、辣椒与蒜香在江风吹拂下四溢，展现出西贡最地道的市井烟火气。", "レモングラスとガーリックの香りが川風に乗って漂う活気あふれる屋台街。", "레몬그라스와 마늘 향이 강바람을 타고 퍼지는 최고의 로컬 푸드 경험."),
+                    factReference = "District 4 Culinary Archives",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh nồi ốc hấp sả bốc khói", "Photo of steaming lemongrass seafood pot", "拍摄热气腾腾的香茅蒸螺锅", "湯気立つ貝料理の鍋を撮影", "김이 모락모락 나는 해산물 요리 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.UPCOMING
+                )
+            )
+            "q5_herbal" -> listOf(
+                QuestStop(
+                    id = "stop_01_q5h",
+                    placeId = "q5h_1",
+                    name = l(lang, "Hào Sĩ Phường - Cụm Nhà Cổ 100 Năm (206 Trần Hưng Đạo, P. Chợ Lớn)", "Hào Sĩ Phường 100-Year Historic Courtyard (Cho Lon)", "豪士坊百年华裔骑楼院落（陈兴道206号）", "ハオシーフオン 百年中華回廊住宅（チャンフンダオ206番地）", "하오시프엉 100년 전통 화교 회랑 주택 (쩐흥다오 206번지)"),
+                    category = l(lang, "Di Sản Kiến Trúc", "Architectural Heritage", "百年历史民居", "歴史的建築遺産", "역사 건축 유산"),
+                    latitude = 10.751200,
+                    longitude = 106.661900,
+                    whySelected = l(lang, "Khu dân cư người Hoa xây dựng đầu thế kỷ 20 với ban công gỗ mở và câu đối đỏ.", "Early 20th-century Chinese residential enclave with open wooden balconies and red couplets.", "建于20世纪初的回字形传统华侨民居，红木扶梯与斑驳绿墙沉淀着百年光阴。", "20世紀初頭に建てられた中華風回廊住宅。木のバルコニーと赤い対聯が印象的。", "20세기 초 건립된 전통 화교 공동주택으로 목조 발코니와 붉은 춘련이 인상적인 곳."),
+                    story = l(lang, "Không gian tĩnh mịch tách biệt hoàn toàn khỏi phố xá ồn ào bên ngoài, nơi thời gian ngưng đọng.", "A tranquil haven shielded from city bustle where centuries-old family traditions thrive.", "宛如时光定格的幽静小巷，四五代华人家庭在此守望相助、和睦共处。", "都会の喧騒から隔絶された静寂な空間。代々受け継がれてきた温かい暮らし。", "도심의 소음에서 벗어나 시간이 멈춘 듯 평화로운 전통 커뮤니티."),
+                    factReference = "Hao Si Phuong Heritage Registry",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh hàng hiên gỗ tầng 2 hoặc biển số nhà cổ", "Photo of 2nd floor wooden balcony or vintage address plaque", "拍摄二楼木制走廊或古朴门牌", "2階の木製バルコニーまたは古い表札を撮影", "2층 목조 발코니 또는 빈티지 문패 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.CURRENT
+                ),
+                QuestStop(
+                    id = "stop_02_q5h",
+                    placeId = "q5h_2",
+                    name = l(lang, "Phố Đông Y Lương Nhữ Học & Triệu Quang Phục (P. Chợ Lớn)", "Lương Nhữ Học Traditional Herbal Medicine Row (Cho Lon)", "梁汝学与赵光复传统中药百草街（堤岸坊）", "ルオンニューホック漢方薬通り（チョロン坊）", "르엉느혹 & 찌에우꽝푹 전통 한약방 거리 (쩌롱동)"),
+                    category = l(lang, "Phố Thuốc Cổ Truyền", "Herbal Medicine Row", "百年中草药街", "老舗漢方薬街", "전통 한약재 거리"),
+                    latitude = 10.752600,
+                    longitude = 106.658300,
+                    whySelected = l(lang, "Tuyến phố đông y cổ kính với mùi thảo dược quế hồi ngào ngạt và tủ thuốc trăm ngăn.", "Ancient traditional apothecary quarter filled with cinnamon scents and multi-drawer herb cabinets.", "弥漫着肉桂与沉香芬芳的古老中药商圈，陈列着百年紫檀百子药柜。", "シナモンや薬草の香りが漂う漢方薬街。無数の引き出しを持つ薬箪笥が並ぶ。", "계피와 감초 향이 가득한 유서 깊은 한약방 거리. 수백 개의 서랍을 가진 백자 약장."),
+                    story = l(lang, "Các danh y thế gia bắt mạch, kê đơn và cân thuốc bằng chiếc cân tiểu ly bằng đồng cổ kính.", "Generations of herbal doctors diagnosing, prescribing, and balancing herbs on brass scales.", "中医世家代代相传把脉问诊、用古朴铜秤精准配制养生草药。", "熟練の漢方医が真鍮の天秤を使って正確に生薬を調合する伝統の技。", "대대로 이어진 한의사들이 황동 저울로 정성껏 약재를 조제하는 전통의 현장."),
+                    factReference = "Cho Lon Herbal Guild Heritage",
+                    challenge = Challenge(prompt = l(lang, "Chụp ảnh tủ thuốc đông y gỗ hoặc mẹt phơi quế", "Photo of wooden herb cabinet or cinnamon drying tray", "拍摄实木百子药柜或晾晒的肉桂药材", "木製薬箪笥または天日干しのハーブを撮影", "원목 약재장 또는 햇볕에 말리는 계피 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.UPCOMING
+                ),
+                QuestStop(
+                    id = "stop_03_q5h",
+                    placeId = "q5h_3",
+                    name = l(lang, "Tiệm Trà Thảo Mộc & Chè Quy Linh Cao Hà Tôn Quyền (P. Chợ Lớn)", "Hà Tôn Quyền Herbal Tea & Gui Ling Gao (Cho Lon)", "何孙权草本凉茶与古法龟苓膏老铺（堤岸坊）", "ハトンクエン伝統ハーブ涼茶＆亀ゼリー（チョロン坊）", "하똔꾸엔 전통 허브차 & 귀령고 디저트 (쩌롱동)"),
+                    category = l(lang, "Dưỡng Sinh & Ẩm Thực", "Herbal Tea & Dessert", "传统养生茶饮", "薬膳スイーツ＆ハーブ茶", "전통 약선 디저트 & 한방차"),
+                    latitude = 10.755400,
+                    longitude = 106.656200,
+                    whySelected = l(lang, "Quán trà thảo mộc gia truyền giúp thanh nhiệt cơ thể với món quy linh cao và trà hoa cúc.", "Century-old family herbal tea shop serving refreshing Chrysanthemum tea and Gui Ling Gao jelly.", "传承百年的古法凉茶与龟苓膏老店，清热解暑、生津止渴。", "菊花茶や自家製亀ゼリーで身体を整える、創業百年の伝統茶房。", "국화차와 수제 귀령고 젤리로 무더위를 식혀주는 백년 전통의 한방 디저트 전문점."),
+                    story = l(lang, "Bí quyết chưng cất thảo dược từ đời ông cố truyền lại, thức uống giải nhiệt không thể thiếu của người Chợ Lớn.", "Secret herbal brewing recipes passed down across four generations, soothing the tropical heat.", "四代相传的秘方慢火熬煮，是堤岸华人历久弥新的夏日养生智慧。", "4世代にわたり受け継がれてきた秘伝の煮出し製法。南国の知恵が息づく一杯。", "4대에 걸쳐 전수된 비법 약초 달임차로 사이공 남국의 무더위를 달래주는 지혜."),
+                    factReference = "Cho Lon Wellness Guide",
+                    challenge = Challenge(prompt = l(lang, "Chụp chén quy linh cao hoặc bình trà thảo dược", "Photo of herbal jelly bowl or tea pot", "拍摄一碗晶莹的龟苓膏或特色凉茶壶", "亀ゼリーの小鉢またはハーブティーポットを撮影", "귀령고 젤리 또는 한방 차 주전자 사진 촬영"), type = "PHOTO_OR_SKIP"),
+                    status = StopStatus.UPCOMING
+                )
+            )
             else -> listOf(
                 QuestStop(
                     id = "stop_01_q1",
@@ -493,7 +631,7 @@ class MockQuestRepository {
                     latitude = 10.768900,
                     longitude = 106.688500,
                     whySelected = l(lang, "Con hẻm sầm uất với mùi sườn nướng thơm nức tại Phường Cầu Ông Lãnh.", "Bustling foodie alley filled with grilled pork rib aromas in Cau Ong Lanh Ward.", "位于考翁领坊整条胡同扑鼻而来碳烤排骨美味。", "カウオンラン坊の炭火で焼く香ばしい豚肋肉の香りが漂うグルメ路地。", "꺼우옹라인동 숯불 돼지고기 구이 향이 가득한 먹거리 명소."),
-                    story = l(lang, "Bữa ăn cơm tấm bình dân gắn liền với ký ức bao thế hệ tại Phường Cầu Ông Lãnh.", "Broken rice meals deep rooted in daily memories in Cau Ong Lanh Ward.", "考翁领坊碎米饭是深植于几代西贡人日常生活中最温暖的市井美味。", "カウオンラン坊で世代を超えて愛され続けるサイゴンのソウルフード。", "꺼우옹라인동 수세대에 걸쳐 사랑받아 온 사이공의 영혼의 음식 쩜똠."),
+                    story = l(lang, "Bữa ăn cơm tấm bình dân gắn liền với ký ức bao thế hệ tại Phường Cầu Ông Lãnh.", "Broken rice meals deep rooted in daily memories in Cau Ong Lanh Ward.", "考翁领坊碎米饭是深植于几代西贡人日常生活中最温暖的市井美味。", "カウオンラン坊で世代を超えて爱され続けるサイゴンのソウルフード。", "꺼우옹라인동 수세대에 걸쳐 사랑받아 온 사이공의 영혼의 음식 쩜똠."),
                     factReference = "Saigon Culinary Heritage Register (Cau Ong Lanh Ward)",
                     challenge = Challenge(prompt = l(lang, "Chụp ảnh làn khói sườn nướng trong hẻm", "Photo of smoking grill in alley", "拍摄巷弄里炭火烤肉烟雾缭绕的市井画面", "炭火焼きの煙が上がる雰囲気を撮影", "숯불 연기가 노란 골목 맛집 사진 촬영"), type = "PHOTO_OR_SKIP"),
                     status = StopStatus.UPCOMING
@@ -504,10 +642,13 @@ class MockQuestRepository {
         val title = when (questType) {
             "q_thanhda" -> l(lang, "Ký Ức Thanh Đa: Hẻm Bờ Sông & Cư Xá Cũ", "Thanh Đa Memories: Riverside Alleys & Heritage Apartments", "青多记忆：滨江深巷与复古老楼", "タインダーの記憶：リバーサイド路地とレトロ団地", "탄다의 추억: 강변 골목과 레트로 아파트")
             "q10_bk" -> l(lang, "Bách Khoa Sài Gòn & Hẻm Sinh Viên", "HCMUT Bách Khoa & Student Alleyways", "胡志明市理工大学与青春学生巷弄", "ホーチミン工科大学（BK）＆学生街のヘム", "호치민 공과대학(BK) & 대학가 청춘 골목")
+            "q10_bk_food" -> l(lang, "Bách Khoa Ẩm Thực Sinh Viên & Hẻm Đêm Đồ Án", "BK Student Food Trail & All-Nighter Alleys", "理工大学学生美食与挑灯夜战寻味之旅", "工科大グルメ探訪＆深夜のプロジェクト路地", "BK 대학가 먹거리 탐방 & 밤샘 과제 골목")
             "q11_crafts" -> l(lang, "Làng Lồng Đèn Phú Bình & Xưởng Thủ Công", "Phú Bình Lantern Village & Local Crafts", "富平灯笼传统手艺村", "フービン ランタン作りと伝統工芸街", "푸빈 등불 전통 공예 마을")
             "q3_french" -> l(lang, "Hẻm Biệt Thự Cổ & Cà Phê Nắng Sớm", "French Colonial Villa & Morning Coffee Alley", "法式古墅与优雅庭院咖啡小巷", "フレンチコロニアル洋館＆朝の珈琲路地", "프렌치 빌라 & 아침 커피 골목")
             "q5_food" -> l(lang, "Hẻm Ẩm Thực & Hội Quán Chợ Lớn", "Chợ Lớn Heritage Food Alley", "堤岸百年美食与会馆寻味之旅", "チョロン 屋台グルメ＆レトロ歴史路地", "쩌롱 먹거리 골목 & 역사 회관")
+            "q5_herbal" -> l(lang, "Phố Thuốc Bắc Triệu Quang Phục & Hào Sĩ Phường", "Cho Lon Herbal Medicine Quarter & Hao Si Phuong", "堤岸百草中药名巷与豪士坊百年古居", "チョロン漢方薬通り＆ハオシーフオン百年集落", "쩌롱 한약재 골목 & 하오시프엉 백년 고택")
             "q3_bunker" -> l(lang, "Biệt Động Sài Gòn & Hầm Bí Mật", "Secret Commandos & Underground Bunker", "西贡特工地下军火库寻踪", "サイゴン別動隊＆秘密地道ヘム", "사이공 특공대 비밀 기지 골목")
+            "q4_riverfront" -> l(lang, "Hẻm Bến Vân Đồn, Cầu Mống & Bến Xưa Sài Gòn", "Ben Van Don Alleys, Cau Mong & Historic Riverfront", "云屯码头深巷、彩虹古桥与西贡水岸风情", "ベンヴァンドン運河路地＆コーモン歴史鉄橋", "벤반돈 강변 골목 & 꺼우몽 역사 철교")
             else -> l(lang, "Cà Phê Vợt & Hẻm Di Sản Sài Gòn", "Net Filter Coffee & Saigon Heritage Alleys", "西贡网滤咖啡与经典历史胡同", "隠れ路地＆伝統のネット珈琲", "사이공 숨은 골목 & 헤리티지 커피")
         }
 
