@@ -29,6 +29,38 @@ data class GreenScore(
     @Json(name = "factors") val factors: List<GreenFactor> = emptyList()
 )
 
+enum class QuestDifficulty(val label: String, val emoji: String) {
+    EASY("Easy", "🟢"),
+    MODERATE("Moderate", "🟡"),
+    CHALLENGING("Challenging", "🔴");
+
+    fun localizedName(language: String): String {
+        return when (this) {
+            EASY -> when (language) {
+                "vi" -> "Dễ"
+                "zh" -> "轻松"
+                "ja" -> "初級"
+                "ko" -> "쉬움"
+                else -> "Easy"
+            }
+            MODERATE -> when (language) {
+                "vi" -> "Vừa phải"
+                "zh" -> "中等"
+                "ja" -> "中級"
+                "ko" -> "보통"
+                else -> "Moderate"
+            }
+            CHALLENGING -> when (language) {
+                "vi" -> "Thử thách"
+                "zh" -> "进阶"
+                "ja" -> "上級"
+                "ko" -> "도전"
+                else -> "Challenging"
+            }
+        }
+    }
+}
+
 @JsonClass(generateAdapter = true)
 data class Challenge(
     @Json(name = "type") val type: String = "PHOTO_OR_SKIP",
@@ -63,8 +95,25 @@ data class Quest(
     @Json(name = "estimatedMinutes") val estimatedMinutes: Int,
     @Json(name = "estimatedDistanceMetres") val estimatedDistanceMetres: Int,
     @Json(name = "greenScore") val greenScore: GreenScore,
-    @Json(name = "stops") val stops: List<QuestStop>
-)
+    @Json(name = "stops") val stops: List<QuestStop>,
+    @Json(name = "difficulty") val difficulty: String? = null
+) {
+    val difficultyLevel: QuestDifficulty
+        get() {
+            if (!difficulty.isNullOrBlank()) {
+                when (difficulty.trim().uppercase()) {
+                    "EASY", "DỄ", "轻松", "初級", "쉬움" -> return QuestDifficulty.EASY
+                    "CHALLENGING", "HARD", "THỬ THÁCH", "KHÓ", "进阶", "困难", "上級", "도전", "어려움" -> return QuestDifficulty.CHALLENGING
+                    "MODERATE", "MEDIUM", "VỪA PHẢI", "TRUNG BÌNH", "中等", "中級", "보통" -> return QuestDifficulty.MODERATE
+                }
+            }
+            return when {
+                estimatedDistanceMetres >= 2000 || estimatedMinutes >= 55 || stops.size >= 5 -> QuestDifficulty.CHALLENGING
+                estimatedDistanceMetres <= 1300 && estimatedMinutes <= 35 && stops.size <= 3 -> QuestDifficulty.EASY
+                else -> QuestDifficulty.MODERATE
+            }
+        }
+}
 
 @JsonClass(generateAdapter = true)
 data class PhotoVerificationResult(

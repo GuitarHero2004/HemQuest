@@ -680,7 +680,12 @@ class MockQuestRepository {
                     )
                 )
             ),
-            stops = enrichedStops
+            stops = enrichedStops,
+            difficulty = when (questType) {
+                "q3_bunker", "q1_alleys" -> "EASY"
+                "q_thanhda", "q4_riverfront" -> "CHALLENGING"
+                else -> "MODERATE"
+            }
         )
     }
 }

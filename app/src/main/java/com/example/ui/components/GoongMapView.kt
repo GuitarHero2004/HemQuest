@@ -91,7 +91,7 @@ class GoongJsBridge(var onStopSelected: (String) -> Unit) {
     }
 }
 
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
 fun GoongMapView(
     quest: Quest?,
@@ -815,9 +815,9 @@ fun GoongMapView(
                     }
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
-                    settings.databaseEnabled = true
                     settings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
                     settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                    @Suppress("JavascriptInterface")
                     addJavascriptInterface(jsBridge, "AndroidBridge")
                     loadDataWithBaseURL("https://tiles.goong.io/", htmlContent, "text/html", "UTF-8", null)
                 }

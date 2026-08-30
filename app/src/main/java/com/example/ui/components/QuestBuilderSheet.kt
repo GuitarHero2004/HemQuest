@@ -82,8 +82,10 @@ fun QuestBuilderSheet(
     var language by remember { mutableStateOf(initialRequest.language) }
 
     val availableInterests = listOf(
-        "Street Food", "History", "Hidden Alleys", "Local Crafts",
-        "Architecture", "Coffee Culture", "Art & Design", "Green Spaces"
+        "Hidden Alleys", "Maker & Hacker", "Street Food", "Secret History",
+        "Local Crafts", "Architecture", "Coffee Culture", "Canal & River",
+        "Antique Masters", "Acoustic & Books", "Sacred Shrines", "Late Night",
+        "Green Spaces"
     )
 
     val selectedInterests = remember {
@@ -91,12 +93,18 @@ fun QuestBuilderSheet(
     }
 
     val locationPresets = listOf(
-        Triple("Phường Sài Gòn (Hẻm 158 Pasteur)", 10.7764, 106.7011),
-        Triple("Phường Xuân Hòa (Biệt Thự Cổ)", 10.7810, 106.6910),
-        Triple("Phường Chợ Lớn (Hào Sĩ Phường)", 10.7533, 106.6601),
-        Triple("Phường Bàn Cờ (Hầm Biệt Động)", 10.7825, 106.6958),
+        Triple("Phường Diên Hồng (ĐH Bách Khoa & Hẻm Đồ Án)", 10.7725, 106.6578),
+        Triple("Phường Chợ Lớn (Phố Thuốc Bắc & Hào Sĩ Phường)", 10.7533, 106.6601),
+        Triple("Phường Thanh Đa (Cư Xá Lô S & Bến Đò Cũ)", 10.8258, 106.7242),
+        Triple("Phường Bàn Cờ (Mê Cung Hẻm & Hầm Biệt Động)", 10.7825, 106.6958),
+        Triple("Phường Sài Gòn (Hẻm 158 Pasteur & Chợ Cũ)", 10.7764, 106.7011),
+        Triple("Phường Tân Định (Hẻm Đặng Dung & Bích Họa)", 10.7851, 106.6982),
         Triple("Phường Hòa Bình (Làng Lồng Đèn Phú Bình)", 10.7638, 106.6492),
-        Triple("Phường Thanh Đa (Cư Xá Thanh Đa)", 10.8258, 106.7242)
+        Triple("Phường Xóm Chiếu (Hẻm Ốc & Cầu Mống 1893)", 10.7689, 106.7032),
+        Triple("Phường Nhiêu Lộc (Bờ Kênh & Lò Lư Đồng)", 10.7932, 106.6845),
+        Triple("Phường Cầu Kho (Hẻm Lò Hủ Tiếu & Đình Cổ)", 10.7589, 106.6892),
+        Triple("Phường Bình Đông (Bến Ghe & Hẻm Làm Nhang)", 10.7482, 106.6421),
+        Triple("Phường Hạnh Thông Tây (Nhà Thờ Cổ & Lò Tráng)", 10.8351, 106.6654)
     )
 
     ModalBottomSheet(

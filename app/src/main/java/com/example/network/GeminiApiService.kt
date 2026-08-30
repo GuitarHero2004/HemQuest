@@ -34,78 +34,100 @@ class GeminiApiService {
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     suspend fun generateQuest(apiKey: String, questRequest: QuestRequest): Quest = withContext(Dispatchers.IO) {
-        val modelsToTry = listOf("gemini-3.5-flash", "gemini-3.1-pro-preview", "gemini-flash-latest")
+        val modelsToTry = listOf("gemini-3.7-flash", "gemini-2.5-flash", "gemini-flash-latest")
         var lastException: Exception? = null
 
+        val randomSeed = System.currentTimeMillis() % 10000
+        val dynamicAngle = when ((randomSeed % 10).toInt()) {
+            0 -> "FOCUSED ANGLE: Micro-Artisans, Guild Secrets & Family Workshops (làng nghề, xưởng thủ công, tiệm nghề gia truyền)"
+            1 -> "FOCUSED ANGLE: Hidden Courtyards, Mid-Century Modernist Corridors & Tile Architecture (cư xá, ban công hoa giấy, gạch hoa xưa)"
+            2 -> "FOCUSED ANGLE: Deep Culinary Lore, Heritage Recipe Keepers & Micro-Eateries (cà phê vợt, bánh tráng than hồng, quán gia truyền)"
+            3 -> "FOCUSED ANGLE: Student & Maker Culture, 24/7 Hacker Hubs & Blueprint Alleys (đồ án, linh kiện, trà cóc vỉa hè)"
+            4 -> "FOCUSED ANGLE: Secret Wartime History, Underground Cellars & Clan Temples (hầm bí mật, hội quán bang hội, di tích khuất)"
+            5 -> "FOCUSED ANGLE: Riverfront Alleyways, Old Canals & Breeze Corridors (bến đò xưa, cầu bộ hành Eiffel, rặng dừa nước)"
+            6 -> "FOCUSED ANGLE: Forgotten Religious Enclaves & Sacred Alley Shrines (chùa cổ trong hẻm, đình làng Nam Bộ, nhà thờ gỗ xưa)"
+            7 -> "FOCUSED ANGLE: Literary, Antique Books & Acoustic Instrument Alleys (hẻm sách cũ, phố đàn guitar thủ công, xưởng tranh)"
+            8 -> "FOCUSED ANGLE: Night Market Alleys & Midnight Supper Havens (hẻm ẩm thực đêm, xe hủ tiếu gõ, chè người Hoa)"
+            else -> "FOCUSED ANGLE: Botanic Alleys, Green Courtyards & Shaded Balconies (vườn cây hẻm phố, ban công xanh, giàn thiên lý)"
+        }
+
         val systemPrompt = """
-            You are HẻmQuest AI, a world-class cultural curator and urbanist specializing in low-impact mindful walking quests through authentic Saigon (Ho Chi Minh City) alleyways (hẻm).
+            You are HẻmQuest AI, an expert cultural urbanist, investigative ethnographer, and master cartographer specializing in authentic, deep-cut, walking expeditions through the hidden alleys (hẻm, cư xá, xóm) of Ho Chi Minh City (Saigon).
+
+            Generate a completely ORIGINAL, UNPREDICTABLE, HYPER-SPECIFIC 3-to-4 stop walking quest in ${questRequest.startingLocationName} (Around Lat: ${questRequest.latitude}, Lng: ${questRequest.longitude}).
             
-            Generate a completely UNIQUE, engaging 3-to-4 stop walking quest in ${questRequest.startingLocationName} (Coordinates: ${questRequest.latitude}, ${questRequest.longitude}).
-            
-            CRITICAL DESIGN DIRECTIVES FOR MAXIMUM VARIETY & AUTHENTICITY:
-            1. NEVER use generic or cookie-cutter templates. Craft an imaginative, culturally deep micro-theme based on the specific location and user interest.
-            2. FOCUS ON HIDDEN ALLEYS (HẺM): Prioritize narrow residential corridors, tucked-away family workshops, 24/7 maker cafes, historic shaded courtyards, secret wartime bunkers, century-old clan temples, antique book/hardware alleyways, and independent street craft artisans OVER major commercial mega-attractions (like Notre Dame or Central Post Office).
-            3. DIVERSE THEMATIC VARIATIONS TO EXPLORE:
-               - "Bách Khoa & Maker Hub": 24/7 CAD project cafes, A0 blueprint plotting alleys, Nhat Tao electronics bazaar, legendary student broken rice diners, Gate 1 & 3 campus tea stalls.
-               - "Colonial Villa & Hidden Courtyard": French louvre-shuttered alleys in Phường Xuân Hòa, vintage garden walls in Phường Nhiêu Lộc, shaded art alleyways.
-               - "Chinatown Heritage & Guilds": Herbal medicine drawers in Phường Chợ Lớn, handmade dumpling alleys in Hà Tôn Quyền, century-old Hao Si Phuong courtyards.
-               - "Riverfront & Canal Life": Breeze-filled canal alleys on Thanh Đa peninsula, historic 1893 Cầu Mống bridge corridor, riverside timber docks.
-               - "Artisans & Street Crafts": Phú Bình cellophane lantern ateliers, woodcarving shops in Phường Hòa Bình, lacquerware and ceramic corners.
-               - "Mid-Century Modernist Saigon": 1970s apartment balconies, vintage tile corridors in Tôn Thất Đạm / Pasteur alleys.
-            
-            USER PREFERENCES:
-            - Target Duration: ${questRequest.durationMinutes} minutes (${if (questRequest.durationMinutes <= 45) "Generate 3 well-paced stops" else "Generate 4 immersive stops"})
-            - Interests: ${questRequest.interests.joinToString(", ")}
-            - Custom User Notes: ${questRequest.freeTextNotes}
-            - Language: ${
+            CREATIVE ANGLE FOR THIS SESSION: $dynamicAngle (Seed: $randomSeed)
+
+            ==================================================
+            STRICT ANTI-CLICHÉ & NEGATIVE CONSTRAINTS (MANDATORY):
+            - NEVER include mainstream tourist monuments: NO Notre Dame Cathedral (Nhà thờ Đức Bà), NO Central Post Office (Bưu điện TP), NO Opera House (Nhà hát TP), NO Ben Thanh Market main hall (Chợ Bến Thành), NO Bitexco / Landmark 81, NO Bui Vien Walking Street, NO Nguyen Hue boulevard.
+            - ALL STOPS MUST BE LOCATED IN RESIDENTIAL ALLEYS (Hẻm), OLD HOUSING ESTATES (Cư Xá), HISTORIC COURTYARDS (Hào Sĩ Phường, Xóm Cũ), OR CANAL BOARDWALKS.
+            - Every stop name MUST specify its realistic Saigon Alley/Street number (e.g. "Hẻm 493/12 Tô Hiến Thành", "Cư Xá Lô S Thanh Đa", "Hẻm 14/19 Tôn Thất Đạm", "Hẻm 206 Trần Hưng Đạo", "Hẻm 284/4 Lý Thường Kiệt", "Hẻm 339 Lê Văn Sỹ", "Cư Xá Đô Thành", "Hẻm 100 Cô Giang").
+            ==================================================
+
+            SAIGON MICRO-NEIGHBORHOOD ENCYCLOPEDIA (Select relevant micro-locations):
+            1. Bách Khoa / Diên Hồng / Lữ Gia (Q10): Hẻm in ấn A0 493 Tô Hiến Thành, chợ linh kiện điện tử Nhật Tảo, cư xá Lữ Gia cà phê thức 24/7, quán cơm tấm tăng ca đồ án Cổng 3, vỉa hè trà đá cờ tướng Cổng 1, hẻm 284 Lý Thường Kiệt.
+            2. Chợ Lớn / Triệu Quang Phục / Hà Tôn Quyền (Q5): Phố thuốc bắc đông y Lương Nhữ Học, Hào Sĩ Phường (cụm nhà người Hoa 1910), hẻm sủi cảo gia truyền Hà Tôn Quyền, xưởng làm kéo & chảo gang Bùi Hữu Nghĩa, Hội Quán Nghĩa An & Ôn Lăng trong hẻm.
+            3. Thanh Đa / Bình Quới (Bình Thạnh): Cư xá Thanh Đa Lô S 1972, hẻm bờ sông dừa nước Lô IV, bến phà đò Bình Quới xưa, hẻm cháo vịt gia truyền, cầu cạn ngắm hoàng hôn rặng dừa nước.
+            4. Bàn Cờ / Vườn Chuối / Nguyễn Thiện Thuật (Q3): Mê cung bàn cờ hẻm ngoằn ngoèo, hầm giấu vũ khí Biệt Động Sài Gòn (cà phê Đỗ Phủ / phở Bình), hẻm bún bò xứ Huế, hẻm nghệ nhân làm đàn ghi-ta thủ công Nguyễn Thiện Thuật, Cư xá Đô Thành gạch hoa cổ.
+            5. Phú Bình / Lạc Long Quân / Hòa Bình (Q11): Làng nghề làm lồng đèn giấy kiếng kiêm vẽ họa tiết, xưởng mộc tiện gỗ, hẻm thợ làm bánh pía nướng than, hẻm dệt nhuộm vải xưa.
+            6. Tân Định / Đặng Dung / Huỳnh Tịnh Của (Q1): Hẻm thợ sửa đồng hồ cơ khí cổ Đặng Dung, hẻm bích họa 18A Nguyễn Thị Minh Khai, hẻm biệt thự cổ Pháp có giàn hoa giấy đường Huỳnh Tịnh Của, hẻm chợ đồ cổ Lê Công Kiều.
+            7. Xóm Chiếu / Tôn Đản / Bến Vân Đồn (Q4): Cầu Mống di sản 1893, cư xá Vĩnh Hội ven kênh Bến Nghé, hẻm ẩm thực hải sản & ốc đêm Tôn Đản, xóm dệt chiếu xưa, hẻm nhà thờ Xóm Chiếu.
+            8. Chợ Quán / An Bình / Trần Hưng Đạo (Q5): Hẻm xóm lồng đèn Lương Nhữ Học, quán chè cổ truyền Hà Tôn Quyền & quy linh cao, hẻm tiệm đúc đồng và chạm bạc gia truyền Triệu Quang Phục.
+            9. Nhiêu Lộc / Thị Nghè / Phan Xích Long (Phú Nhuận): Hẻm bờ kênh Nhiêu Lộc rợp bóng bằng lăng, hẻm ẩm thực 3 miền Phan Xích Long, chợ hoa đêm Đầm Sen kết nối kênh, hẻm lò đúc lư đồng An Hội.
+            10. Cầu Kho / Cô Giang / Cô Bắc (Q1): Xóm đình cổ Nam Bộ Cầu Kho, hẻm lò hủ tiếu hồ Cô Giang, hẻm cư xá xi măng xưa Bến Chương Dương, tiệm may áo dài truyền thống ẩn mình.
+            11. Gò Vấp / Hạnh Thông Tây (Gò Vấp): Hẻm xóm lò gốm & tráng bánh tráng xưa, nhà thờ Hạnh Thông Tây kiến trúc Byzantine Pháp cổ, hẻm hoa kiểng đường Cây Trâm.
+            12. Hào Huê / Lò Gốm (Q6 / Q8): Hẻm bến Bình Đông ghe thuyền miền Tây chở trái cây, lò gốm Hưng Phú xưa, hẻm làm nhang Tháp Mười, hẻm cầu chữ Y ngắm ngã ba kênh.
+
+            USER REQUEST SPECIFICATIONS:
+            - Target Duration: ${questRequest.durationMinutes} minutes (${if (questRequest.durationMinutes <= 45) "Generate 3 deeply detailed stops" else "Generate 4 immersive stops"})
+            - Selected Interests: ${questRequest.interests.joinToString(", ")}
+            - Custom User Prompt / Notes: "${questRequest.freeTextNotes}"
+            - Target Language: ${
                 when (questRequest.language) {
-                    "vi" -> "Vietnamese (Tiếng Việt)"
-                    "zh" -> "Chinese (Simplified 中文)"
-                    "ja" -> "Japanese (日本語)"
-                    "ko" -> "Korean (한국어)"
-                    else -> "English"
+                    "vi" -> "Vietnamese (Tiếng Việt - tự nhiên, giàu chất thơ đường phố Sài Gòn, am hiểu lịch sử)"
+                    "zh" -> "Chinese (Simplified 中文 - 地道文雅的城市漫步探索语调)"
+                    "ja" -> "Japanese (日本語 - 情緒豊かな裏路地散策カルチャーガイド調)"
+                    "ko" -> "Korean (한국어 - 생생하고 깊이 있는 골목길 탐방 가이드 어조)"
+                    else -> "English (Atmospheric, culturally respectful, evocative urbanist tone)"
                 }
-            }. All output fields (title, theme, summary, stop names, category, whySelected, story, challenge prompt, successGuidance, green score labels/explanations) MUST be fully localized in this language.
-            
-            GEOGRAPHIC ACCURACY (Use accurate central Saigon coordinates and new merged Phường names):
-            - Bách Khoa / Diên Hồng (HCMUT, Tô Hiến Thành, Lữ Gia): Lat 10.770 - 10.776, Lng 106.655 - 106.663
-            - Thanh Đa Peninsula (Cư xá Lô S, Bờ Sông, Bình Quới): Lat 10.820 - 10.835, Lng 106.720 - 106.735
-            - Chợ Lớn / Chợ Quán (Hà Tôn Quyền, Lương Nhữ Học, Hào Sĩ Phường): Lat 10.750 - 10.758, Lng 106.652 - 106.663
-            - Bàn Cờ (Mê cung bàn cờ, Phở Bình, Cà phê Đỗ Phủ, Hầm Biệt Động): Lat 10.772 - 10.779, Lng 106.680 - 106.687
-            - Xuân Hòa / Tân Định / Sài Gòn (Pasteur, Lý Tự Trọng, Tôn Thất Đạm, Biệt thự cổ): Lat 10.774 - 10.786, Lng 106.690 - 106.705
-            - Phú Bình / Hòa Bình (Làng lồng đèn, xưởng mộc, gốm): Lat 10.760 - 10.768, Lng 106.646 - 106.653
-            - Cầu Mống / Bến Vân Đồn (Bờ kênh Bến Nghé, Xóm cổ): Lat 10.767 - 10.773, Lng 106.702 - 106.708
-            
-            Return ONLY a JSON object strictly matching this schema:
+            }. All output fields (title, theme, summary, stop names, category, whySelected, story, challenge prompt, successGuidance, green score factors) MUST be fully localized in this language.
+            - Difficulty Rating Rule: Classify "difficulty" as exactly one of "EASY", "MODERATE", or "CHALLENGING" based on:
+                * "EASY": Short gentle walks (< 1.3 km, <= 35 mins, flat paved alleys, leisurely stops).
+                * "MODERATE": Medium walks (1.3 km - 2.2 km, 35 - 55 mins, winding multi-branching alleyways).
+                * "CHALLENGING": Longer or steeper explorations (> 2.2 km, > 55 mins, stair climbs in vintage apartments, intricate labyrinth networks).
+
+            JSON OUTPUT SCHEMA:
             {
-              "id": "quest_district_theme_timestamp",
-              "title": "Inspiring Quest Title",
-              "theme": "Captivating micro-theme description",
-              "summary": "Short 2-sentence summary highlighting the unique route atmosphere",
-              "estimatedMinutes": 60,
-              "estimatedDistanceMetres": 1600,
+              "id": "quest_district_theme_${System.currentTimeMillis()}",
+              "title": "Evocative, authentic quest title",
+              "theme": "Rich, specific cultural theme description",
+              "summary": "2-sentence punchy summary of the alley exploration",
+              "difficulty": "EASY",
+              "estimatedMinutes": ${questRequest.durationMinutes},
+              "estimatedDistanceMetres": ${if (questRequest.durationMinutes <= 45) 1600 else 2400},
               "greenScore": {
-                "score": 92,
+                "score": 95,
                 "factors": [
-                  {"label": "Walkable Route", "explanation": "Compact pedestrian corridor through shaded alleys"},
-                  {"label": "Local Artisans", "explanation": "Directly visits independent local alleyway creators"}
+                  {"label": "Shaded Alleyways", "explanation": "Low-carbon pedestrian-only labyrinth shielded from direct sun"},
+                  {"label": "Grassroots Micro-Economy", "explanation": "Directly supports multi-generational alley artisans and family shops"}
                 ]
               },
               "stops": [
                 {
-                  "id": "stop_01_unique_name",
-                  "placeId": "ChIJ_real_place_id_or_generated",
-                  "name": "Distinct Stop Name (with Phường & Alley Number)",
-                  "category": "Architecture / Food / Craft / Community",
+                  "id": "stop_01_unique_slug",
+                  "placeId": "ChIJ_saigon_h_${System.currentTimeMillis()}_1",
+                  "name": "Specific Alley Stop Name with Real Address & Ward",
+                  "category": "Alley Heritage / Micro-Gastronomy / Artisan Workshop / Historic Residence",
                   "latitude": 10.7745,
                   "longitude": 106.6621,
-                  "whySelected": "Why this specific hidden gem fits the route",
-                  "story": "Deep cultural story with verified historical/sociological facts",
-                  "factReference": "Verified Saigon Heritage Registry",
+                  "whySelected": "Why this particular hidden spot reveals an undiscovered facet of Saigon",
+                  "story": "Rich storytelling with historical facts, local neighborhood anecdotes, and sensorial details (sounds, aromas, textures)",
+                  "factReference": "Verified Saigon Urban Heritage Registry",
                   "challenge": {
                     "type": "PHOTO_OR_SKIP",
-                    "prompt": "Specific mindful observation or photo prompt doable from sidewalk",
-                    "successGuidance": "Clues to spot the exact architectural or cultural detail"
+                    "prompt": "Specific, mindful observation or photo prompt doable directly from the sidewalk",
+                    "successGuidance": "Distinct visual or architectural clue to spot on site"
                   },
                   "photos": [
                     "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&auto=format&fit=crop&q=80",
@@ -126,7 +148,8 @@ class GeminiApiService {
             })
             put("generationConfig", JSONObject().apply {
                 put("responseMimeType", "application/json")
-                put("temperature", 0.85)
+                put("temperature", 0.92)
+                put("topP", 0.95)
                 put("maxOutputTokens", 4096)
             })
         }
@@ -183,7 +206,7 @@ class GeminiApiService {
         stopName: String,
         language: String
     ): PhotoVerificationResult = withContext(Dispatchers.IO) {
-        val modelsToTry = listOf("gemini-3.5-flash", "gemini-flash-latest", "gemini-3.1-flash-lite-preview")
+        val modelsToTry = listOf("gemini-3.7-flash", "gemini-2.5-flash", "gemini-flash-latest")
         var lastException: Exception? = null
 
         val langName = when (language) {
@@ -313,7 +336,7 @@ class GeminiApiService {
     }
 
     suspend fun askGeminiAssistant(apiKey: String, promptText: String): String = withContext(Dispatchers.IO) {
-        val modelsToTry = listOf("gemini-3.5-flash", "gemini-flash-latest", "gemini-3.1-flash-lite-preview")
+        val modelsToTry = listOf("gemini-3.7-flash", "gemini-2.5-flash", "gemini-flash-latest")
         var lastException: Exception? = null
 
         val jsonBodyWithMaps = JSONObject().apply {

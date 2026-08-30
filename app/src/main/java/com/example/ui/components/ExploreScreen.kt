@@ -64,6 +64,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.QuestCategory
+import com.example.model.QuestDifficulty
 import com.example.model.QuestRequest
 import com.example.ui.theme.ClayOrange
 import com.example.ui.theme.CyberPurple
@@ -90,7 +91,8 @@ data class FeaturedQuest(
     val tags: List<String>,
     val bgColors: List<Color>,
     val request: QuestRequest,
-    val category: QuestCategory = QuestCategory.HIDDEN_ALLEYS
+    val category: QuestCategory = QuestCategory.HIDDEN_ALLEYS,
+    val difficulty: QuestDifficulty = QuestDifficulty.MODERATE
 )
 
 @Composable
@@ -136,7 +138,8 @@ fun ExploreScreen(
                 freeTextNotes = "Net filter coffee & hidden alleyways",
                 language = currentLanguage
             ),
-            category = QuestCategory.HIDDEN_ALLEYS
+            category = QuestCategory.HIDDEN_ALLEYS,
+            difficulty = QuestDifficulty.EASY
         ),
         FeaturedQuest(
             title = l(currentLanguage, "Bách Khoa Sài Gòn & Hẻm Sinh Viên", "HCMUT Bách Khoa & Student Alleyways", "胡志明市理工大学与青春学生巷弄", "ホーチミン工科大学（BK）＆学生街のヘム", "호치민 공과대학(BK) & 대학가 청춘 골목"),
@@ -164,7 +167,8 @@ fun ExploreScreen(
                 freeTextNotes = "Bách Khoa student food, HCMUT campus & Lữ Gia study cafes",
                 language = currentLanguage
             ),
-            category = QuestCategory.HIDDEN_ALLEYS
+            category = QuestCategory.HIDDEN_ALLEYS,
+            difficulty = QuestDifficulty.MODERATE
         ),
         FeaturedQuest(
             title = l(currentLanguage, "Hẻm Ẩm Thực & Hội Quán Chợ Lớn", "Street Food & Guild Halls (Chợ Lớn)", "堤岸美食寻味与百年会馆", "チョロン 屋台グルメ＆歴史会館", "쩌롱 먹거리 골목 & 유서 깊은 회관"),
@@ -192,7 +196,8 @@ fun ExploreScreen(
                 freeTextNotes = "Chợ Lớn street food and ancient temples",
                 language = currentLanguage
             ),
-            category = QuestCategory.STREET_FOOD
+            category = QuestCategory.STREET_FOOD,
+            difficulty = QuestDifficulty.MODERATE
         ),
         FeaturedQuest(
             title = l(currentLanguage, "Biệt Động Sài Gòn & Hầm Bí Mật", "Secret Commandos & Bunker Trail", "西贡特工地下军火库寻踪", "サイゴン別動隊と秘密史迹ヘム", "사이공 특공대 비밀 기지"),
@@ -220,7 +225,8 @@ fun ExploreScreen(
                 freeTextNotes = "Secret commandos bunkers & colonial architecture",
                 language = currentLanguage
             ),
-            category = QuestCategory.HISTORY
+            category = QuestCategory.HISTORY,
+            difficulty = QuestDifficulty.EASY
         ),
         FeaturedQuest(
             title = l(currentLanguage, "Làng Lồng Đèn Phú Bình & Thủ Công", "Phu Binh Lantern Village & Local Crafts", "富平灯笼传统手艺村", "フービン ランタン作りと伝統工芸街", "푸빈 등불 전통 공예 마을"),
@@ -248,7 +254,8 @@ fun ExploreScreen(
                 freeTextNotes = "Lantern making workshops & artisan alleyways",
                 language = currentLanguage
             ),
-            category = QuestCategory.LOCAL_CRAFTS
+            category = QuestCategory.LOCAL_CRAFTS,
+            difficulty = QuestDifficulty.MODERATE
         ),
         FeaturedQuest(
             title = l(currentLanguage, "Hẻm Biệt Thự Cổ & Cà Phê Vườn", "French Colonial Villa Alley & Garden Cafe", "法式古墅与优雅庭院咖啡", "フレンチコロニアル洋館路地＆ガーデンカフェ", "프렌치 빌라 골목 & 가든 카페"),
@@ -276,7 +283,8 @@ fun ExploreScreen(
                 freeTextNotes = "French colonial architecture & shaded courtyards",
                 language = currentLanguage
             ),
-            category = QuestCategory.ARCHITECTURE
+            category = QuestCategory.ARCHITECTURE,
+            difficulty = QuestDifficulty.EASY
         )
     )
 
@@ -1175,7 +1183,7 @@ fun ExploreScreen(
                             }
                         }
 
-                        // Tags & Highlight Badges Row
+                        // Tags, Difficulty Level & Highlight Badges Row
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1183,6 +1191,26 @@ fun ExploreScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Difficulty Level Tag
+                            val (diffBg, diffBorder, diffText) = when (quest.difficulty) {
+                                QuestDifficulty.EASY -> Triple(Color(0xFFECFDF5), Color(0xFFA7F3D0), Color(0xFF047857))
+                                QuestDifficulty.MODERATE -> Triple(Color(0xFFFFFBEB), Color(0xFFFDE68A), Color(0xFFB45309))
+                                QuestDifficulty.CHALLENGING -> Triple(Color(0xFFFEF2F2), Color(0xFFFECACA), Color(0xFFB91C1C))
+                            }
+                            Surface(
+                                color = diffBg,
+                                border = BorderStroke(1.dp, diffBorder),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = "${quest.difficulty.emoji} ${quest.difficulty.localizedName(currentLanguage)}",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = diffText,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
+                                )
+                            }
+
                             Surface(
                                 color = Color(0xFFF1F5F9),
                                 shape = RoundedCornerShape(8.dp)
@@ -1190,11 +1218,11 @@ fun ExploreScreen(
                                 Text(
                                     text = l(
                                         currentLanguage,
-                                        "📍 ${quest.stopsCount} điểm dừng",
+                                        "📍 ${quest.stopsCount} điểm",
                                         "📍 ${quest.stopsCount} stops",
-                                        "📍 ${quest.stopsCount} 个打卡点",
-                                        "📍 ${quest.stopsCount} か所",
-                                        "📍 ${quest.stopsCount}개 스팟"
+                                        "📍 ${quest.stopsCount} 站",
+                                        "📍 ${quest.stopsCount} 箇所",
+                                        "📍 ${quest.stopsCount} 스팟"
                                     ),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.SemiBold,
@@ -1203,7 +1231,7 @@ fun ExploreScreen(
                                 )
                             }
 
-                            quest.tags.take(2).forEach { tag ->
+                            quest.tags.take(1).forEach { tag ->
                                 Surface(
                                     color = Color(0xFFF8FAFC),
                                     border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
@@ -1214,7 +1242,9 @@ fun ExploreScreen(
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Medium,
                                         color = Ink600,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }

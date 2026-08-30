@@ -60,10 +60,87 @@ class GeminiQuestRepository(
                     val parsed = questAdapter.fromJson(jsonStr)
                     if (parsed != null) {
                         quests.add(parsed)
+                        continue
                     }
                 } catch (e: Exception) {
-                    Log.e("GeminiQuestRepository", "Failed to deserialize quest ${doc.id}", e)
+                    Log.e("GeminiQuestRepository", "Failed to deserialize questJson for ${doc.id}", e)
                 }
+            }
+
+            // Fallback: parse direct document fields if questJson is absent
+            try {
+                val id = doc.getString("id") ?: doc.id
+                val title = doc.getString("title") ?: "Hành Trình Khám Phá"
+                val theme = doc.getString("theme") ?: "Hẻm Di Sản Sài Gòn"
+                val summary = doc.getString("summary") ?: ""
+                val estMinutes = (doc.getLong("estimatedMinutes") ?: 45L).toInt()
+                val estDistance = (doc.getDouble("estimatedDistanceMetres")
+                    ?: doc.getLong("estimatedDistanceMeters")?.toDouble()
+                    ?: doc.getDouble("estimatedDistanceMeters")
+                    ?: 1200.0).toInt()
+                val rawGreen = doc.get("greenScore")
+                val greenScoreVal = when (rawGreen) {
+                    is Number -> rawGreen.toInt()
+                    is Map<*, *> -> (rawGreen["score"] as? Number)?.toInt() ?: 120
+                    else -> 120
+                }
+                val rawDifficulty = doc.getString("difficulty")
+                val rawStops = doc.get("stops") as? List<*> ?: emptyList<Any>()
+                val stopsList = rawStops.mapIndexed { index, item ->
+                    val map = item as? Map<*, *> ?: emptyMap<String, Any>()
+                    val stopId = (map["id"] as? String) ?: "stop_${index + 1}"
+                    val placeId = (map["placeId"] as? String) ?: stopId
+                    val name = (map["name"] as? String) ?: "Điểm dừng ${index + 1}"
+                    val category = (map["category"] as? String) ?: "Di sản"
+                    val lat = (map["latitude"] as? Number)?.toDouble() ?: 10.7741
+                    val lng = (map["longitude"] as? Number)?.toDouble() ?: 106.7028
+                    val whySelected = (map["whySelected"] as? String) ?: ""
+                    val story = (map["story"] as? String) ?: ""
+                    val factRef = (map["factReference"] as? String) ?: ""
+                    val prompt = (map["challengePrompt"] as? String)
+                        ?: (map["challenge"] as? Map<*, *>)?.get("prompt") as? String
+                        ?: "Khám phá di sản và chụp ảnh check-in"
+                    val chType = (map["challengeType"] as? String)
+                        ?: (map["challenge"] as? Map<*, *>)?.get("type") as? String
+                        ?: "PHOTO_OR_SKIP"
+                    val photos = (map["photos"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+
+                    com.example.model.QuestStop(
+                        id = stopId,
+                        placeId = placeId,
+                        name = name,
+                        category = category,
+                        latitude = lat,
+                        longitude = lng,
+                        whySelected = whySelected,
+                        story = story,
+                        factReference = factRef,
+                        challenge = com.example.model.Challenge(prompt = prompt, type = chType),
+                        status = if (index == 0) com.example.model.StopStatus.CURRENT else com.example.model.StopStatus.UPCOMING,
+                        photos = photos
+                    )
+                }
+
+                if (stopsList.isNotEmpty()) {
+                    quests.add(
+                        Quest(
+                            id = id,
+                            title = title,
+                            theme = theme,
+                            summary = summary,
+                            estimatedMinutes = estMinutes,
+                            estimatedDistanceMetres = estDistance,
+                            greenScore = com.example.model.GreenScore(
+                                score = greenScoreVal,
+                                factors = emptyList()
+                            ),
+                            stops = stopsList,
+                            difficulty = rawDifficulty
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w("GeminiQuestRepository", "Failed to construct Quest from direct document fields for ${doc.id}", e)
             }
         }
         Log.d("GeminiQuestRepository", "Successfully pulled and instantiated ${quests.size} quests from Firestore 'mock_quests'")

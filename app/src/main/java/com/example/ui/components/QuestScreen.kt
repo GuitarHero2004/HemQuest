@@ -95,6 +95,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.R
 import com.example.auth.AuthViewModel
 import com.example.model.Quest
+import com.example.model.QuestDifficulty
 import com.example.model.QuestStop
 import com.example.model.StopStatus
 import com.example.ui.QuestUiState
@@ -332,22 +333,46 @@ fun QuestScreen(
                         .testTag("start_journey_preview_card")
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
+                        val questDiff = uiState.currentQuest?.difficultyLevel ?: QuestDifficulty.MODERATE
+                        val (qDiffBg, qDiffBorder, qDiffText) = when (questDiff) {
+                            QuestDifficulty.EASY -> Triple(Color(0xFFECFDF5), Color(0xFFA7F3D0), Color(0xFF047857))
+                            QuestDifficulty.MODERATE -> Triple(Color(0xFFFFFBEB), Color(0xFFFDE68A), Color(0xFFB45309))
+                            QuestDifficulty.CHALLENGING -> Triple(Color(0xFFFEF2F2), Color(0xFFFECACA), Color(0xFFB91C1C))
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Surface(
-                                color = GrabGreen.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(8.dp)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = l(currentLanguage, "SẴN SÀNG KHÁM PHÁ", "READY TO EXPLORE", "准备探索", "探索の準備完了", "탐색 준비 완료"),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = GrabGreen,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                )
+                                Surface(
+                                    color = GrabGreen.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = l(currentLanguage, "SẴN SÀNG KHÁM PHÁ", "READY TO EXPLORE", "准备探索", "探索の準備完了", "탐색 준비 완료"),
+                                        fontSize = 10.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = GrabGreen,
+                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                    )
+                                }
+                                Surface(
+                                    color = qDiffBg,
+                                    border = BorderStroke(1.dp, qDiffBorder),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = "${questDiff.emoji} ${questDiff.localizedName(currentLanguage)}",
+                                        fontSize = 10.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = qDiffText,
+                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                    )
+                                }
                             }
                             Text(
                                 text = "🚩 $totalStops ${l(currentLanguage, "chặng", "stops", "站", "スポット", "지점")}",
@@ -1350,7 +1375,7 @@ fun QuestSequenceProgressHUD(
                             color = Ink900
                         )
                         Text(
-                            text = "$completedStops/$totalStops ${l(currentLanguage, "chặng", "stops", "站", "スポット", "지점")} • $progressPct%",
+                            text = "$completedStops/$totalStops ${l(currentLanguage, "chặng", "stops", "站", "スポット", "지점")} • $progressPct% • ${quest.difficultyLevel.emoji} ${quest.difficultyLevel.localizedName(currentLanguage)}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = ForestGreen
