@@ -113,13 +113,18 @@ class QuestViewModel(
     private var generateJob: kotlinx.coroutines.Job? = null
 
     init {
-        // Ensure initial 'mock_quests' are seeded on Firestore if empty, then pull to local cache
+        // Ensure initial 'mock_quests' and 'cultural_glossary' are seeded on Firestore if empty, then sync
         viewModelScope.launch {
             try {
                 com.example.repository.MockQuestSeeder.seedIfNeeded()
                 repository.pullAndCacheMockQuestsFromFirestore()
             } catch (e: Exception) {
                 android.util.Log.d("QuestViewModel", "Initial Firestore mock quests sync skipped: ${e.message}")
+            }
+            try {
+                com.example.repository.CulturalGlossaryRepository.syncFromFirestore()
+            } catch (e: Exception) {
+                android.util.Log.d("QuestViewModel", "Initial Firestore glossary sync skipped: ${e.message}")
             }
         }
     }
@@ -459,7 +464,12 @@ class QuestViewModel(
 
     fun verifyPhotoChallenge(bitmap: Bitmap) {
         val currentStop = _uiState.value.ongoingStop ?: _uiState.value.selectedStop ?: return
+        val currentQuest = _uiState.value.currentQuest
         val language = _uiState.value.questRequest.language
+        val userLat = _uiState.value.userLocationLat
+        val userLng = _uiState.value.userLocationLng
+        val distToStop = calculateDistanceMeters(userLat, userLng, currentStop.latitude, currentStop.longitude)
+
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -470,8 +480,20 @@ class QuestViewModel(
             }
             val result = repository.verifyPhoto(
                 bitmap = bitmap,
-                challengePrompt = currentStop.challenge.prompt,
                 stopName = currentStop.name,
+                vietnameseName = currentStop.name,
+                challengePrompt = currentStop.challenge.prompt,
+                category = currentStop.category,
+                story = currentStop.story,
+                whySelected = currentStop.whySelected,
+                culturalTip = currentStop.factReference,
+                successGuidance = currentStop.challenge.successGuidance ?: "",
+                questTheme = currentQuest?.theme ?: "",
+                targetLatitude = currentStop.latitude,
+                targetLongitude = currentStop.longitude,
+                userLatitude = userLat,
+                userLongitude = userLng,
+                distanceMeters = distToStop,
                 language = language
             )
             _uiState.update {

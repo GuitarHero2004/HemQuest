@@ -32,6 +32,12 @@ interface UserStatsDao {
     @Query("UPDATE user_stats SET completedQuestsCount = completedQuestsCount + 1 WHERE id = 1")
     suspend fun incrementCompletedQuests()
 
+    @Query("UPDATE user_stats SET currentStreak = :streak WHERE id = 1")
+    suspend fun updateStreak(streak: Int)
+
+    @Query("UPDATE user_stats SET currentStreak = currentStreak + 1 WHERE id = 1")
+    suspend fun incrementStreak()
+
     @Query("UPDATE user_stats SET unlockedBadgeIds = :badgeIds WHERE id = 1")
     suspend fun updateUnlockedBadges(badgeIds: String)
 

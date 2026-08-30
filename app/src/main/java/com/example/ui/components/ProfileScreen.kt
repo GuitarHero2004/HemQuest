@@ -1151,9 +1151,8 @@ fun ProfileScreen(
                                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                         OutlinedButton(
                                             onClick = {
-                                                if (currentUid != null) {
-                                                    userStatsViewModel?.fetchFromFirestore(currentUid)
-                                                }
+                                                val targetId = currentUid ?: authUiState.userProfile?.uid ?: "local_user"
+                                                userStatsViewModel?.fetchFromFirestore(targetId)
                                             },
                                             shape = RoundedCornerShape(10.dp),
                                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
@@ -1176,9 +1175,8 @@ fun ProfileScreen(
 
                                         Button(
                                             onClick = {
-                                                if (currentUid != null) {
-                                                    userStatsViewModel?.syncToFirestore(currentUid)
-                                                }
+                                                val targetId = currentUid ?: authUiState.userProfile?.uid ?: "local_user"
+                                                userStatsViewModel?.syncToFirestore(targetId)
                                             },
                                             shape = RoundedCornerShape(10.dp),
                                             colors = ButtonDefaults.buttonColors(containerColor = GrabGreen),

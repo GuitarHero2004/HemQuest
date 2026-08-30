@@ -55,6 +55,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -99,7 +100,9 @@ fun CulturalGlossaryBottomSheet(
     var bookmarkedTermIds by remember { mutableStateOf(setOf<String>()) }
     var triviaIndex by remember { mutableStateOf(0) }
 
-    val filteredItems = remember(searchQuery, selectedCategory, currentLanguage) {
+    val allGlossaryItems by CulturalGlossaryRepository.glossaryItemsState.collectAsState()
+
+    val filteredItems = remember(searchQuery, selectedCategory, currentLanguage, allGlossaryItems) {
         CulturalGlossaryRepository.search(searchQuery, selectedCategory, currentLanguage)
     }
 

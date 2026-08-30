@@ -860,38 +860,44 @@ class AuthManager(
                 Log.w("AuthManager", "Failed to fetch passport photos from Firestore", e)
             }
 
+            val localStats = userStatsDao?.getUserStatsSync() ?: UserStatsEntity()
+
             if (snapshot.exists()) {
-                val totalSteps = (snapshot.getLong("totalSteps") ?: 0L).toInt()
-                val completedCheckpoints = (snapshot.getLong("completedCheckpoints") ?: 0L).toInt()
-                val totalXp = (snapshot.getLong("totalXp") ?: 0L).toInt()
-                val currentStreak = (snapshot.getLong("currentStreak") ?: 0L).toInt()
-                val totalDistanceMeters = snapshot.getDouble("totalDistanceMeters") ?: 0.0
-                val completedQuestsCount = (snapshot.getLong("completedQuestsCount") ?: 0L).toInt()
+                val remoteSteps = (snapshot.getLong("totalSteps") ?: 0L).toInt()
+                val remoteCheckpoints = (snapshot.getLong("completedCheckpoints") ?: 0L).toInt()
+                val remoteXp = (snapshot.getLong("totalXp") ?: 0L).toInt()
+                val remoteStreak = (snapshot.getLong("currentStreak") ?: 0L).toInt()
+                val remoteDistance = snapshot.getDouble("totalDistanceMeters") ?: 0.0
+                val remoteQuests = (snapshot.getLong("completedQuestsCount") ?: 0L).toInt()
                 val rawBadgeIds = snapshot.getString("unlockedBadgeIds") ?: ""
                 
-                val mergedBadges = (rawBadgeIds.split(",").map { it.trim() } + cloudBadgeIds)
+                val localBadges = localStats.unlockedBadgeIds.split(",").map { it.trim() }
+                val remoteBadges = rawBadgeIds.split(",").map { it.trim() }
+                val mergedBadges = (localBadges + remoteBadges + cloudBadgeIds)
                     .filter { it.isNotEmpty() }
                     .distinct()
                     .joinToString(",")
 
-                val remoteStats = UserStatsEntity(
+                val mergedStats = UserStatsEntity(
                     id = 1,
-                    totalSteps = totalSteps,
-                    completedCheckpoints = completedCheckpoints,
-                    totalXp = totalXp,
-                    currentStreak = currentStreak,
-                    totalDistanceMeters = totalDistanceMeters,
-                    completedQuestsCount = completedQuestsCount,
+                    totalSteps = maxOf(localStats.totalSteps, remoteSteps),
+                    completedCheckpoints = maxOf(localStats.completedCheckpoints, remoteCheckpoints),
+                    totalXp = maxOf(localStats.totalXp, remoteXp),
+                    currentStreak = maxOf(localStats.currentStreak, remoteStreak, if (maxOf(localStats.totalXp, remoteXp) > 0 || maxOf(localStats.totalSteps, remoteSteps) > 0) 1 else 0),
+                    totalDistanceMeters = maxOf(localStats.totalDistanceMeters, remoteDistance),
+                    completedQuestsCount = maxOf(localStats.completedQuestsCount, remoteQuests),
                     unlockedBadgeIds = mergedBadges
                 )
 
-                userStatsDao?.insertOrUpdate(remoteStats)
-                Log.d("AuthManager", "Successfully fetched user stats and ${cloudBadgeIds.size} badges from Firestore for docId: $docId")
-                Result.success(remoteStats)
+                userStatsDao?.insertOrUpdate(mergedStats)
+                Log.d("AuthManager", "Successfully merged user stats and badges from Firestore for docId: $docId")
+                
+                // Update Firestore with the highest combined stats
+                syncUserData(uid)
+                Result.success(mergedStats)
             } else {
                 // If not exist on cloud yet, upload current local stats
                 syncUserData(uid)
-                val localStats = userStatsDao?.getUserStatsSync()
                 Result.success(localStats)
             }
         } catch (e: Exception) {

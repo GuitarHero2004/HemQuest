@@ -77,10 +77,39 @@ class OfflineQuestRepository(
 
     suspend fun verifyPhoto(
         bitmap: android.graphics.Bitmap,
-        challengePrompt: String,
         stopName: String,
-        language: String
+        vietnameseName: String = "",
+        challengePrompt: String,
+        category: String = "",
+        story: String = "",
+        whySelected: String = "",
+        culturalTip: String = "",
+        successGuidance: String = "",
+        questTheme: String = "",
+        targetLatitude: Double? = null,
+        targetLongitude: Double? = null,
+        userLatitude: Double? = null,
+        userLongitude: Double? = null,
+        distanceMeters: Int? = null,
+        language: String = "en"
     ): com.example.model.PhotoVerificationResult {
-        return remoteRepository.verifyPhoto(bitmap, challengePrompt, stopName, language)
+        return remoteRepository.verifyPhoto(
+            bitmap = bitmap,
+            stopName = stopName,
+            vietnameseName = vietnameseName,
+            challengePrompt = challengePrompt,
+            category = category,
+            story = story,
+            whySelected = whySelected,
+            culturalTip = culturalTip,
+            successGuidance = successGuidance,
+            questTheme = questTheme,
+            targetLatitude = targetLatitude,
+            targetLongitude = targetLongitude,
+            userLatitude = userLatitude,
+            userLongitude = userLongitude,
+            distanceMeters = distanceMeters,
+            language = language
+        )
     }
 }

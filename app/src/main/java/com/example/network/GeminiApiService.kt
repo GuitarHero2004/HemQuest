@@ -22,9 +22,10 @@ import java.util.concurrent.TimeUnit
 class GeminiApiService {
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(25, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
         .build()
 
     private val moshi = Moshi.Builder()
@@ -34,7 +35,8 @@ class GeminiApiService {
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     suspend fun generateQuest(apiKey: String, questRequest: QuestRequest): Quest = withContext(Dispatchers.IO) {
-        val modelsToTry = listOf("gemini-3.7-flash", "gemini-2.5-flash", "gemini-flash-latest")
+        // Support latest fast models including gemini-3.6-flash for complex quests
+        val modelsToTry = listOf("gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-3.1-pro-preview")
         var lastException: Exception? = null
 
         val randomSeed = System.currentTimeMillis() % 10000
@@ -52,35 +54,21 @@ class GeminiApiService {
         }
 
         val systemPrompt = """
-            You are HẻmQuest AI, an expert cultural urbanist, investigative ethnographer, and master cartographer specializing in authentic, deep-cut, walking expeditions through the hidden alleys (hẻm, cư xá, xóm) of Ho Chi Minh City (Saigon).
+            You are HẻmQuest AI, an expert cultural urbanist and master cartographer specializing in authentic, deep-cut walking expeditions through the hidden alleys (hẻm, cư xá, xóm) of Ho Chi Minh City (Saigon).
 
-            Generate a completely ORIGINAL, UNPREDICTABLE, HYPER-SPECIFIC 3-to-4 stop walking quest in ${questRequest.startingLocationName} (Around Lat: ${questRequest.latitude}, Lng: ${questRequest.longitude}).
+            Generate a completely ORIGINAL, UNPREDICTABLE, HYPER-SPECIFIC 3-stop walking quest in ${questRequest.startingLocationName} (Around Lat: ${questRequest.latitude}, Lng: ${questRequest.longitude}).
             
             CREATIVE ANGLE FOR THIS SESSION: $dynamicAngle (Seed: $randomSeed)
 
             ==================================================
-            STRICT ANTI-CLICHÉ & NEGATIVE CONSTRAINTS (MANDATORY):
-            - NEVER include mainstream tourist monuments: NO Notre Dame Cathedral (Nhà thờ Đức Bà), NO Central Post Office (Bưu điện TP), NO Opera House (Nhà hát TP), NO Ben Thanh Market main hall (Chợ Bến Thành), NO Bitexco / Landmark 81, NO Bui Vien Walking Street, NO Nguyen Hue boulevard.
-            - ALL STOPS MUST BE LOCATED IN RESIDENTIAL ALLEYS (Hẻm), OLD HOUSING ESTATES (Cư Xá), HISTORIC COURTYARDS (Hào Sĩ Phường, Xóm Cũ), OR CANAL BOARDWALKS.
+            STRICT ANTI-CLICHÉ RULES:
+            - NEVER include mainstream tourist monuments (NO Notre Dame, NO Post Office, NO Opera House, NO Ben Thanh Market main hall, NO Bitexco, NO Bui Vien).
+            - ALL STOPS MUST BE LOCATED IN RESIDENTIAL ALLEYS (Hẻm), OLD HOUSING ESTATES (Cư Xá), HISTORIC COURTYARDS (Hào Sĩ Phường), OR CANAL BOARDWALKS.
             - Every stop name MUST specify its realistic Saigon Alley/Street number (e.g. "Hẻm 493/12 Tô Hiến Thành", "Cư Xá Lô S Thanh Đa", "Hẻm 14/19 Tôn Thất Đạm", "Hẻm 206 Trần Hưng Đạo", "Hẻm 284/4 Lý Thường Kiệt", "Hẻm 339 Lê Văn Sỹ", "Cư Xá Đô Thành", "Hẻm 100 Cô Giang").
             ==================================================
 
-            SAIGON MICRO-NEIGHBORHOOD ENCYCLOPEDIA (Select relevant micro-locations):
-            1. Bách Khoa / Diên Hồng / Lữ Gia (Q10): Hẻm in ấn A0 493 Tô Hiến Thành, chợ linh kiện điện tử Nhật Tảo, cư xá Lữ Gia cà phê thức 24/7, quán cơm tấm tăng ca đồ án Cổng 3, vỉa hè trà đá cờ tướng Cổng 1, hẻm 284 Lý Thường Kiệt.
-            2. Chợ Lớn / Triệu Quang Phục / Hà Tôn Quyền (Q5): Phố thuốc bắc đông y Lương Nhữ Học, Hào Sĩ Phường (cụm nhà người Hoa 1910), hẻm sủi cảo gia truyền Hà Tôn Quyền, xưởng làm kéo & chảo gang Bùi Hữu Nghĩa, Hội Quán Nghĩa An & Ôn Lăng trong hẻm.
-            3. Thanh Đa / Bình Quới (Bình Thạnh): Cư xá Thanh Đa Lô S 1972, hẻm bờ sông dừa nước Lô IV, bến phà đò Bình Quới xưa, hẻm cháo vịt gia truyền, cầu cạn ngắm hoàng hôn rặng dừa nước.
-            4. Bàn Cờ / Vườn Chuối / Nguyễn Thiện Thuật (Q3): Mê cung bàn cờ hẻm ngoằn ngoèo, hầm giấu vũ khí Biệt Động Sài Gòn (cà phê Đỗ Phủ / phở Bình), hẻm bún bò xứ Huế, hẻm nghệ nhân làm đàn ghi-ta thủ công Nguyễn Thiện Thuật, Cư xá Đô Thành gạch hoa cổ.
-            5. Phú Bình / Lạc Long Quân / Hòa Bình (Q11): Làng nghề làm lồng đèn giấy kiếng kiêm vẽ họa tiết, xưởng mộc tiện gỗ, hẻm thợ làm bánh pía nướng than, hẻm dệt nhuộm vải xưa.
-            6. Tân Định / Đặng Dung / Huỳnh Tịnh Của (Q1): Hẻm thợ sửa đồng hồ cơ khí cổ Đặng Dung, hẻm bích họa 18A Nguyễn Thị Minh Khai, hẻm biệt thự cổ Pháp có giàn hoa giấy đường Huỳnh Tịnh Của, hẻm chợ đồ cổ Lê Công Kiều.
-            7. Xóm Chiếu / Tôn Đản / Bến Vân Đồn (Q4): Cầu Mống di sản 1893, cư xá Vĩnh Hội ven kênh Bến Nghé, hẻm ẩm thực hải sản & ốc đêm Tôn Đản, xóm dệt chiếu xưa, hẻm nhà thờ Xóm Chiếu.
-            8. Chợ Quán / An Bình / Trần Hưng Đạo (Q5): Hẻm xóm lồng đèn Lương Nhữ Học, quán chè cổ truyền Hà Tôn Quyền & quy linh cao, hẻm tiệm đúc đồng và chạm bạc gia truyền Triệu Quang Phục.
-            9. Nhiêu Lộc / Thị Nghè / Phan Xích Long (Phú Nhuận): Hẻm bờ kênh Nhiêu Lộc rợp bóng bằng lăng, hẻm ẩm thực 3 miền Phan Xích Long, chợ hoa đêm Đầm Sen kết nối kênh, hẻm lò đúc lư đồng An Hội.
-            10. Cầu Kho / Cô Giang / Cô Bắc (Q1): Xóm đình cổ Nam Bộ Cầu Kho, hẻm lò hủ tiếu hồ Cô Giang, hẻm cư xá xi măng xưa Bến Chương Dương, tiệm may áo dài truyền thống ẩn mình.
-            11. Gò Vấp / Hạnh Thông Tây (Gò Vấp): Hẻm xóm lò gốm & tráng bánh tráng xưa, nhà thờ Hạnh Thông Tây kiến trúc Byzantine Pháp cổ, hẻm hoa kiểng đường Cây Trâm.
-            12. Hào Huê / Lò Gốm (Q6 / Q8): Hẻm bến Bình Đông ghe thuyền miền Tây chở trái cây, lò gốm Hưng Phú xưa, hẻm làm nhang Tháp Mười, hẻm cầu chữ Y ngắm ngã ba kênh.
-
             USER REQUEST SPECIFICATIONS:
-            - Target Duration: ${questRequest.durationMinutes} minutes (${if (questRequest.durationMinutes <= 45) "Generate 3 deeply detailed stops" else "Generate 4 immersive stops"})
+            - Target Duration: ${questRequest.durationMinutes} minutes (Generate 3 deeply detailed, atmospheric stops)
             - Selected Interests: ${questRequest.interests.joinToString(", ")}
             - Custom User Prompt / Notes: "${questRequest.freeTextNotes}"
             - Target Language: ${
@@ -92,10 +80,7 @@ class GeminiApiService {
                     else -> "English (Atmospheric, culturally respectful, evocative urbanist tone)"
                 }
             }. All output fields (title, theme, summary, stop names, category, whySelected, story, challenge prompt, successGuidance, green score factors) MUST be fully localized in this language.
-            - Difficulty Rating Rule: Classify "difficulty" as exactly one of "EASY", "MODERATE", or "CHALLENGING" based on:
-                * "EASY": Short gentle walks (< 1.3 km, <= 35 mins, flat paved alleys, leisurely stops).
-                * "MODERATE": Medium walks (1.3 km - 2.2 km, 35 - 55 mins, winding multi-branching alleyways).
-                * "CHALLENGING": Longer or steeper explorations (> 2.2 km, > 55 mins, stair climbs in vintage apartments, intricate labyrinth networks).
+            - Difficulty: "EASY", "MODERATE", or "CHALLENGING".
 
             JSON OUTPUT SCHEMA:
             {
@@ -105,7 +90,7 @@ class GeminiApiService {
               "summary": "2-sentence punchy summary of the alley exploration",
               "difficulty": "EASY",
               "estimatedMinutes": ${questRequest.durationMinutes},
-              "estimatedDistanceMetres": ${if (questRequest.durationMinutes <= 45) 1600 else 2400},
+              "estimatedDistanceMetres": ${if (questRequest.durationMinutes <= 45) 1400 else 2200},
               "greenScore": {
                 "score": 95,
                 "factors": [
@@ -148,9 +133,12 @@ class GeminiApiService {
             })
             put("generationConfig", JSONObject().apply {
                 put("responseMimeType", "application/json")
-                put("temperature", 0.92)
+                put("temperature", 0.75)
                 put("topP", 0.95)
-                put("maxOutputTokens", 4096)
+                put("maxOutputTokens", 2048)
+                put("thinkingConfig", JSONObject().apply {
+                    put("thinkingLevel", "low")
+                })
             })
         }
 
@@ -202,11 +190,23 @@ class GeminiApiService {
     suspend fun verifyPhoto(
         apiKey: String,
         bitmap: Bitmap,
-        challengePrompt: String,
         stopName: String,
-        language: String
+        vietnameseName: String = "",
+        challengePrompt: String,
+        category: String = "",
+        story: String = "",
+        whySelected: String = "",
+        culturalTip: String = "",
+        successGuidance: String = "",
+        questTheme: String = "",
+        targetLatitude: Double? = null,
+        targetLongitude: Double? = null,
+        userLatitude: Double? = null,
+        userLongitude: Double? = null,
+        distanceMeters: Int? = null,
+        language: String = "en"
     ): PhotoVerificationResult = withContext(Dispatchers.IO) {
-        val modelsToTry = listOf("gemini-3.7-flash", "gemini-2.5-flash", "gemini-flash-latest")
+        val modelsToTry = listOf("gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash")
         var lastException: Exception? = null
 
         val langName = when (language) {
@@ -217,41 +217,60 @@ class GeminiApiService {
             else -> "English"
         }
 
+        val targetGpsStr = if (targetLatitude != null && targetLongitude != null) "$targetLatitude, $targetLongitude" else "Known Landmark Coordinates"
+        val userGpsStr = if (userLatitude != null && userLongitude != null) "$userLatitude, $userLongitude" else "Device GPS Active"
+        val distStr = if (distanceMeters != null) "${distanceMeters}m" else "Nearby"
+        val gpsProximityStatus = if (distanceMeters != null && distanceMeters > 300) "DISTANT (${distanceMeters}m away from target landmark coordinates)" else "IN_VICINITY"
+
         val promptText = """
-            You are HẻmQuest Multimodal AI Verifier, an expert architectural, cultural, and urban heritage verifier for walking quests in Saigon (Ho Chi Minh City), Vietnam.
+            You are HẻmQuest Multimodal AI Verifier, an authoritative urban heritage, architectural, and culture verifier for outdoor exploration quests in Ho Chi Minh City (Saigon), Vietnam.
             
-            TARGET DESTINATION / STOP: "$stopName"
-            CHALLENGE PROMPT / MISSION: "$challengePrompt"
-            TARGET RESPONSE LANGUAGE: $langName
+            QUEST & CULTURAL LANDMARK METADATA:
+            - QUEST THEME: "${questTheme.ifBlank { "Saigon Heritage & Alley Exploration" }}"
+            - TARGET DESTINATION / STOP NAME: "$stopName" ${if (vietnameseName.isNotBlank() && vietnameseName != stopName) "($vietnameseName)" else ""}
+            - CULTURAL CATEGORY: "${category.ifBlank { "Heritage Alleyway & Architecture" }}"
+            - HISTORICAL / ARCHITECTURAL STORY: "${story.ifBlank { whySelected.ifBlank { "Historic Saigon alleyway site" } }}"
+            - KEY CULTURAL MARKERS & HIGHLIGHTS: "${culturalTip.ifBlank { whySelected.ifBlank { stopName } }}"
+            - REQUIRED VISUAL LANDMARK & SUCCESS GUIDANCE: "${successGuidance.ifBlank { whySelected.ifBlank { stopName } }}"
+            - CHALLENGE MISSION: "$challengePrompt"
             
-            RIGOROUS PHOTO VERIFICATION DIRECTIVES:
-            Analyze the attached image strictly against the Challenge Prompt and Target Destination:
+            GEOLOCATION & TELEMETRY CROSS-REFERENCE:
+            - TARGET DESTINATION GPS: $targetGpsStr
+            - USER DEVICE GPS: $userGpsStr
+            - MEASURED DISTANCE TO LANDMARK: $distStr
+            - GPS PROXIMITY STATUS: $gpsProximityStatus
             
-            1. STATUS = "REJECTED" if:
-               - The photo shows completely unrelated scenes or indoor clutter (e.g. computer monitor, keyboard, blank table, floor, bedroom wall, ceiling, furniture, shoes, cars, random pets, or selfies without the landmark).
-               - The user is pointing the camera at a random non-relevant object to bypass the challenge.
-               - The image has nothing to do with the requested cultural/architectural subject at $stopName.
+            MANDATORY MULTIMODAL VERIFICATION & ANTI-SPOOFING RULES:
             
-            2. STATUS = "NOT_ENOUGH_INFORMATION" if:
-               - The photo is pitch black, extreme glare/overexposed, heavily blurred, or completely unidentifiable.
+            1. REJECTION CRITERIA (STATUS = "REJECTED"):
+               - GENERIC & DOMESTIC IMAGES: Any photo depicting indoor household appliances or domestic items (e.g., refrigerator/fridge, freezer, microwave, stove, oven, blender, TV, computer monitor, keyboard, mouse, office desk, bed, sofa/couch, domestic tiled walls/floors, ceiling fans, bathroom fixtures).
+               - GENERIC OBJECTS & NON-LANDMARK SCENES: Random everyday items (e.g., blank paper, documents, water bottles on a plain table, indoor pets, vehicle dashboards, shoes, generic modern concrete walls without cultural markers, random indoor selfies).
+               - NON-MATCHING OUTDOOR SCENES: Photos taken in random locations that DO NOT exhibit the specific architectural facade, traditional signage, temple gate, French-colonial shutters, Chinese clan ornaments, street food setup, or heritage features described in the landmark metadata for "$stopName".
+               - LOCATION MISMATCH / GPS SPOOF: Photos where the scene clearly does not correspond to the physical location of "$stopName" at GPS ($targetGpsStr).
             
-            3. STATUS = "UNCERTAIN" if:
-               - The photo is taken in an alley or Vietnamese street context, but is framed too far away or missing the specific detail demanded in the challenge prompt.
+            2. INSUFFICIENT QUALITY (STATUS = "NOT_ENOUGH_INFORMATION"):
+               - Photos that are completely pitch black, heavily overexposed with blinding glare, severely blurred, or covered by a finger/lens cap.
             
-            4. STATUS = "LIKELY_MATCH" only if:
-               - The photo clearly and genuinely captures the requested cultural item, architectural landmark, sign, food/beverage preparation, or specific scene described in "$challengePrompt".
+            3. UNCERTAIN / PARTIAL VIEW (STATUS = "UNCERTAIN"):
+               - The photo is taken in an authentic outdoor Vietnamese street/alley setting, but the specific visual landmark or required object in "$challengePrompt" is partially obscured, poorly lit, or too distant to confirm with certainty.
             
-            OUTPUT RULES:
-            - If REJECTED or NOT_ENOUGH_INFORMATION:
-              * "observation": State clearly and politely what was actually seen in the photo in $langName (e.g. "Ảnh chụp màn hình máy tính/vật dụng phòng làm việc, không phù hợp với thử thách tại $stopName").
-              * "detailNotes": Give exact instructions in $langName on what the user needs to point the camera at to pass the challenge.
+            4. APPROVAL CRITERIA (STATUS = "LIKELY_MATCH"):
+               - ONLY APPROVE when the image clearly and unmistakably identifies the specific cultural or architectural landmark, historical facade, distinct signage, or authentic alley scene specified in the quest metadata for "$stopName", consistent with physical presence at the site.
+            
+            OUTPUT SPECIFICATIONS (STRICT JSON ONLY):
+            - If REJECTED (e.g. fridge, computer screen, indoor clutter, non-matching generic photo):
+              * "observation": In $langName, state explicitly and precisely what was detected in the photo (e.g., "Phát hiện ảnh chụp tủ lạnh/thiết bị gia dụng trong nhà hoặc đồ vật thông thường, không khớp với địa điểm di sản thực tế '$stopName'" or "Detected an indoor home appliance / refrigerator or generic scene, which does not match '$stopName'").
+              * "detailNotes": In $langName, provide clear, actionable instructions explaining the exact physical landmark, architectural element, or signage that must be captured outdoors at "$stopName".
+            - If NOT_ENOUGH_INFORMATION / UNCERTAIN:
+              * "observation": Describe the visual ambiguity in $langName.
+              * "detailNotes": Guide the explorer in $langName on framing, lighting, or moving closer to the landmark.
             - If LIKELY_MATCH:
-              * "observation": Warm confirmation in $langName highlighting the specific cultural element detected.
-              * "detailNotes": An interesting architectural/cultural tip about this stop in $langName.
+              * "observation": In $langName, enthusiastically confirm the specific cultural/architectural landmark identified.
+              * "detailNotes": In $langName, share a notable heritage or architectural trivia about this stop.
             
-            Return ONLY a valid JSON object matching this structure (no markdown fences, no extra text):
+            Return ONLY a valid JSON object matching this schema (no markdown fences, no extra text):
             {
-              "status": "REJECTED", // Options: LIKELY_MATCH, UNCERTAIN, NOT_ENOUGH_INFORMATION, REJECTED
+              "status": "REJECTED",
               "observation": "2 clear sentences in $langName",
               "detailNotes": "Clear guidance tip in $langName"
             }
@@ -336,7 +355,7 @@ class GeminiApiService {
     }
 
     suspend fun askGeminiAssistant(apiKey: String, promptText: String): String = withContext(Dispatchers.IO) {
-        val modelsToTry = listOf("gemini-3.7-flash", "gemini-2.5-flash", "gemini-flash-latest")
+        val modelsToTry = listOf("gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-3.1-pro-preview")
         var lastException: Exception? = null
 
         val jsonBodyWithMaps = JSONObject().apply {

@@ -221,8 +221,12 @@ class UserStatsViewModel(
             )
         }
         viewModelScope.launch {
+            val oldStats = userStatsDao.getUserStatsSync() ?: UserStatsEntity()
             userStatsDao.addSteps(steps)
             userStatsDao.addDistance(deltaDistance)
+            if (oldStats.currentStreak <= 0 && steps > 0) {
+                userStatsDao.updateStreak(1)
+            }
         }
     }
 

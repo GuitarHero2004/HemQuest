@@ -191,7 +191,11 @@ fun PhotoVerificationBottomSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = if (result.status == VerificationStatus.LIKELY_MATCH) Icons.Default.CheckCircle else Icons.Default.HelpOutline,
+                                imageVector = when (result.status) {
+                                    VerificationStatus.LIKELY_MATCH -> Icons.Default.CheckCircle
+                                    VerificationStatus.REJECTED -> Icons.Default.Close
+                                    else -> Icons.Default.HelpOutline
+                                },
                                 contentDescription = null,
                                 tint = Color.White,
                                 modifier = Modifier.size(16.dp)
